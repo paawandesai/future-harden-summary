@@ -51,3 +51,11 @@ labels = "data/after_sample_labels.jsonl"
 judge = true
 missed = 0
 false_alarms = 1
+
+[[set]]
+name = "v5 draft sample, code + judge"
+traces = "data/v5_sample.jsonl"
+labels = "data/v5_sample_labels.jsonl"
+judge = true
+missed = 1          # t_058: calls a PT visit that already happened upcoming
+false_alarms = 4

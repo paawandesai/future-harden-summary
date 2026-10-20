@@ -138,7 +138,20 @@ to discuss test results". v5's draft doesn't mention tests and is only flagged f
 flag counts are within v4's run-to-run range (2–7 of 60). Two runs can't show more than that.
 
 Every new draft names something specific from the week, and mean length went from 78 words to 86. A blind
-hand-labeled sample of 30 new drafts had 1 violation (t_049, Rule 2), and it was flagged.
+hand-labeled sample of 30 v4 drafts had 1 violation (t_049, Rule 2), and it was flagged.
+
+**Measured on v5 drafts** (`data/v5_sample.jsonl`): the sample is all 7 drafts flagged in one production run, plus
+23 passes chosen at random, labeled blind. 3 drafts break a rule, all in subtle ways.
+- **Caught (2):**
+  - t_038 praises training through a pulled muscle.
+  - t_022 says a ride the member cut short was finished.
+- **Missed (1):** t_058 calls a PT visit that already happened "on Wednesday" upcoming.
+- **Flag precision:** blind, 2 of the 7 flags were real, 2 were borderline and 3 were false. Two of the false flags
+  came from generic code gaps, which are now fixed: "your 7-hour goal" read as a sleep figure, and "skipping
+  Tuesday's class" read as a missed workout called done. After the fixes it is 2 real, 2 borderline and 2 false of
+  6. The 2 remaining false flags are judge Rule 1 calls on drafts that acknowledge an issue correctly.
+- **Miss rate:** 1 miss in 23 random passes suggests about 2 subtle misses per 60 drafts, all flag-level "other"
+  errors. No draft quoted a biomarker or lab, and Rule 3 held in all 30.
 
 ## 6. Next steps, in priority order
 
@@ -150,8 +163,8 @@ hand-labeled sample of 30 new drafts had 1 violation (t_049, Rule 2), and it was
    vocabulary. Code alone still misses paraphrased advice and guilt (rehearsal r_007, r_024), which the judge
    catches.
 4. Move Rule 2 judging to Sonnet if more labels confirm Haiku's two production misses (t_008, t_048).
-5. Hand-label v5 drafts. Most v5 flags are judge Rule 1 or "other" calls on drafts that look clean, so flag
-   precision on new drafts is the number to raise next.
+5. Raise flag precision on new drafts: extend Sonnet confirmation to judge-only Rule 1 findings (the 2 remaining
+   false flags in the v5 sample), and measure it on a fresh labeled sample.
 
 ## 7. AI use
 

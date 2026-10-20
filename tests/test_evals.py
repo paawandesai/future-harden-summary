@@ -380,3 +380,16 @@ def test_view_escapes_drafts_and_marks_evidence():
     )
     page = render([detail], {})
     assert "&lt;b&gt;hi&lt;/b&gt;" in page and "<mark>sat at 58</mark>" in page
+
+
+def test_goals_and_deferred_or_skipped_workouts_are_not_claims():
+    assert "activity_value" not in checks(
+        CLEAN.replace("Same plan", "Sleep is short of your 8-hour goal. Same plan"), week()
+    )
+    skipped = week()
+    skipped.workouts[1].completed = False  # Thursday's hill repeats
+    for line in ("Skipping Thursday's hill repeats was the right call.", "Thursday's hill repeats can wait."):
+        draft = CLEAN.replace("and Thursday's hill repeats got done too", "nice pacing").replace(
+            "Same plan", line + " Same plan"
+        )
+        assert "calendar" not in checks(draft, skipped)

@@ -437,8 +437,9 @@ def grounding(draft: str, facts: WeekFacts) -> list[Finding]:
 _WEEKDAY = re.compile(r"\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:'s)?\b")
 _FORWARD = re.compile(r"\bnext\b|\blet's\b|\bwe'll\b|\bwill\b|\btomorrow\b|\bthis coming\b|\bplan\b")
 _NOT_DONE = re.compile(
-    r"\bmiss(?:ed|ing)?\b|\bskip(?:ped)?\b|didn't|did not|\bcut\b|\bslipped\b|\bmoved\b|\bswapped\b|"
-    r"\bswap\b|\brain|\bclosed\b|\bsick\b|\bcancel|\bbailed\b|\bstopped\b|\binstead\b|wasn't|couldn't|\bout\b|\boff\b|\blost\b|\blate\b|\bmak(?:e|ing) up\b|\bmade up\b"
+    r"\bmiss(?:ed|ing)?\b|\bskip(?:ped|ping)?\b|didn't|did not|\bcut\b|\bslipped\b|\bmoved\b|\bswapped\b|"
+    r"\bswap\b|\brain|\bclosed\b|\bsick\b|\bcancel|\bbailed\b|\bstopped\b|\binstead\b|wasn't|couldn't|\bout\b|\boff\b|\blost\b|\blate\b|\bmak(?:e|ing) up\b|\bmade up\b|"
+    r"\bcan wait\b|\bhold off\b|\bpostpone"
 )
 # Workout kinds a draft counts, and the words in a workout name that make it that kind.
 _KINDS = {
@@ -560,17 +561,18 @@ def _calendar(reason: str, sentence: str) -> Finding:
 
 _DIGITS = re.compile(r"(?<![\w.])\d[\d,]*(?:\.\d+)?")
 _TARGET_BEFORE = re.compile(r"\b(?:above|below|toward|towards|to|past|under|of)\s*$", re.I)
+_TARGET_AFTER = re.compile(r"^[-\s]*(?:hours?|hrs?|h|k|steps?)?[-\s]*(?:a night\s+|a day\s+)?(?:goal|target)\b", re.I)
 
 
 def _nearest_figure(sentence: str, word: re.Pattern[str]) -> float | None:
-    """The digit number closest to `word`, skipping goals such as "toward 7" or "above 7"."""
+    """The digit number closest to `word`, skipping goals such as "toward 7", "above 7" or "your 7-hour goal"."""
     anchor = word.search(sentence)
     if not anchor:
         return None
     figures = [
         (abs(m.start() - anchor.start()), float(m.group().replace(",", "")))
         for m in _DIGITS.finditer(sentence)
-        if not _TARGET_BEFORE.search(sentence[: m.start()])
+        if not _TARGET_BEFORE.search(sentence[: m.start()]) and not _TARGET_AFTER.match(sentence[m.end() :])
     ]
     return min(figures)[1] if figures else None
 
