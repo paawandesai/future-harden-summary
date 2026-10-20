@@ -124,9 +124,11 @@ findings outright would let 3 pass. It costs under $0.10 per 60 traces.
 
 ## 5. Results: before and after
 
-The same 60 inputs, checks and Haiku judge, every row scored with Sonnet confirmation.
+The same 60 inputs, checks and Haiku judge, every row scored with Sonnet confirmation. The counts are what the
+evals report: for the production drafts, 28 flagged or blocked is the 25 labeled violations from section 2, all
+caught, plus 3 clean drafts flagged (t_037, t_041, t_051).
 
-| Version | Any violation | R1 | R2 | R3 | R4 | Other | Pass / flag / block |
+| Version | Flagged or blocked | R1 | R2 | R3 | R4 | Other | Pass / flag / block |
 |---|---|---|---|---|---|---|---|
 | Before: production drafts (prompt v3) | 28 | 9 | 6 | 7 | 7 | 8 | 32 / 11 / 17 |
 | Old prompt v3 on Haiku | 60 | 16 | 4 | 21 | 60 | 16 | 0 / 0 / 60 |
