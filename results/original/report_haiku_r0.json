@@ -66,11 +66,11 @@
     "all/code/other": {
       "tp": 3,
       "fp": 1,
-      "fn": 1,
-      "tn": 55,
+      "fn": 2,
+      "tn": 54,
       "precision": 0.75,
-      "recall": 0.75,
-      "kappa": 0.732142857142857
+      "recall": 0.6,
+      "kappa": 0.6399999999999998
     },
     "all/judge/rule1": {
       "tp": 5,
@@ -109,13 +109,13 @@
       "kappa": 0.0
     },
     "all/judge/other": {
-      "tp": 4,
-      "fp": 9,
+      "tp": 5,
+      "fp": 8,
       "fn": 0,
       "tn": 47,
-      "precision": 0.3076923076923077,
+      "precision": 0.38461538461538464,
       "recall": 1.0,
-      "kappa": 0.4104803493449779
+      "kappa": 0.4947368421052632
     },
     "all/combined/rule1": {
       "tp": 5,
@@ -154,13 +154,13 @@
       "kappa": 1.0
     },
     "all/combined/other": {
-      "tp": 4,
-      "fp": 10,
+      "tp": 5,
+      "fp": 9,
       "fn": 0,
       "tn": 46,
-      "precision": 0.2857142857142857,
+      "precision": 0.35714285714285715,
       "recall": 1.0,
-      "kappa": 0.38016528925619836
+      "kappa": 0.45999999999999974
     },
     "dev/code/rule1": {
       "tp": 2,
@@ -201,11 +201,11 @@
     "dev/code/other": {
       "tp": 2,
       "fp": 1,
-      "fn": 1,
-      "tn": 36,
+      "fn": 2,
+      "tn": 35,
       "precision": 0.6666666666666666,
-      "recall": 0.6666666666666666,
-      "kappa": 0.6396396396396391
+      "recall": 0.5,
+      "kappa": 0.5312500000000003
     },
     "dev/judge/rule1": {
       "tp": 2,
@@ -244,13 +244,13 @@
       "kappa": 0.0
     },
     "dev/judge/other": {
-      "tp": 3,
-      "fp": 5,
+      "tp": 4,
+      "fp": 4,
       "fn": 0,
       "tn": 32,
-      "precision": 0.375,
+      "precision": 0.5,
       "recall": 1.0,
-      "kappa": 0.4897959183673467
+      "kappa": 0.6153846153846153
     },
     "dev/combined/rule1": {
       "tp": 2,
@@ -289,13 +289,13 @@
       "kappa": 1.0
     },
     "dev/combined/other": {
-      "tp": 3,
-      "fp": 6,
+      "tp": 4,
+      "fp": 5,
       "fn": 0,
       "tn": 31,
-      "precision": 0.3333333333333333,
+      "precision": 0.4444444444444444,
       "recall": 1.0,
-      "kappa": 0.436619718309859
+      "kappa": 0.5535714285714286
     },
     "held_out/code/rule1": {
       "tp": 3,

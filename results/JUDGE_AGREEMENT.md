@@ -1,7 +1,8 @@
 # Judge agreement (judge j1, prompt v4, 2026-10-20)
 
 Labels: `labels/labels.jsonl` (60 production drafts) and `data/challenge_labels.jsonl` (40 blind challenge
-drafts), reviewed and accepted by Paawan on 2026-10-20 with no corrections. Judge: `claude-haiku-5-5`, run three
+drafts), reviewed and accepted by Paawan on 2026-10-20. After the cross-check below, Paawan approved relabeling 7
+drafts as "other" violations (wrong weekday or workout count); the tables use the corrected labels. Judge: `claude-haiku-5-5`, run three
 times per draft under separate cache keys (`--judge-repeat`), because these models reject temperature 0.
 Cross-check judge: `claude-sonnet-5-5`, once per draft. Borderline label cells are not scored (RUBRIC.md).
 The judge does not judge Rule 4 by design (code does), so its Rule 4 recall is 0 in the judge-alone tables.
@@ -10,7 +11,7 @@ Total API spend for everything below: about $1.95 (Haiku $0.27, Sonnet $1.66), m
 
 ## Summary
 
-- **The judge earns its place out of sample.** On the blind challenge set, code alone let 11 of 28 violating
+- **The judge earns its place out of sample.** On the blind challenge set, code alone let 13 of 30 violating
   drafts pass. Code plus the Haiku judge let 0 pass, in all three runs.
 - **Rules 1 and 2 are where the judge is strong.** On the challenge set Haiku caught 8/8 Rule 1 and 7/7 Rule 2
   violations with κ 0.86 and 1.00. On the 60 production drafts it caught 5/5 Rule 1 but only 5/7 Rule 2.
@@ -19,16 +20,16 @@ Total API spend for everything below: about $1.95 (Haiku $0.27, Sonnet $1.66), m
 - **Rule 3 recall from the judge is low (2-4 of 7-8), but code covers Rule 3.** Combined Rule 3 recall is 7/7 and
   8/8. That is the intended split: code checks voice, names and length, and the judge only adds guilt and
   specificity.
-- **"Other" is the noisy rule.** Haiku raises 6-13 "other" findings on drafts the labels call clean for that
-  rule, and its run-to-run κ on "other" is only 0.52-0.72 (Rules 1-3: 0.79-1.00). Most of these land on drafts
-  that already break another rule, so the extra cost to coaches is smaller. Clean drafts flagged: 4-6 of 35 on
-  the production set and 5 of 12 on the challenge set for Haiku, versus 2 and 3 for Sonnet.
-- **Several "other" false positives look like label errors.** Both judges independently flag weekday and count
-  mistakes in drafts labeled clean for "other". I checked each against the input dates: c_007 says rowing was Tuesday, but it was Wednesday 09-16. c_010 says Monday and Wednesday, but the
-  class was Tuesday 09-15 and Thursday 09-17. c_018 says Tuesday for Wednesday 09-16. c_022 says Thursday for
-  Friday 09-18. c_023 says two spin classes, but one was missed. c_035 says Saturday for Sunday 09-20. t_053 (dev)
-  mentions "three core classes" that aren't in the week. If these 7 are relabeled, "other" precision rises
-  accordingly. Held-out "other" findings were not read, to keep that split clean.
+- **"Other" is the noisiest rule, and the judges found label errors there.** Both judges independently flagged
+  weekday and count mistakes in 7 drafts the labels called clean. I checked each against the input dates:
+  c_007 says rowing was Tuesday (Wednesday 09-16), c_010 says Monday and Wednesday (Tuesday 09-15, Thursday
+  09-17), c_018 says Tuesday (Wednesday 09-16), c_022 says Thursday (Friday 09-18), c_023 says two spin classes
+  (one was missed), c_035 says Saturday (Sunday 09-20), and t_053 (dev) mentions three core classes that aren't in
+  the week. Paawan approved relabeling all 7. With the corrected labels, Haiku's "other" recall on the challenge
+  set is 8-9 of 10 with precision 0.53-0.67, and Sonnet's is 9/10 at 0.90. Haiku is also the least stable on
+  this rule from run to run (κ 0.52-0.72, against 0.79-1.00 for Rules 1-3). Clean drafts flagged or blocked:
+  4-6 of 35 production drafts and 3 of 10 challenge drafts for Haiku, versus 2 and 1 for Sonnet. Held-out
+  "other" findings were not read, to keep that split clean.
 - **No self-grading leniency.** On 60 drafts Haiku wrote with prompt v4, Haiku's judge flagged 6 and Sonnet 4.
   On drafts Haiku didn't write, the ratio was similar (production 27 vs 22, challenge 27 vs 25). If anything,
   Haiku is the stricter judge, on its own output too.
@@ -46,7 +47,7 @@ Each cell: caught / labeled, false positives, precision, recall, Cohen's κ.
 | rule2 | 3/4, 0 FP, P 1.00, R 0.75, κ 0.84 | 3/4, 0 FP, P 1.00, R 0.75, κ 0.84 | 3/4, 0 FP, P 1.00, R 0.75, κ 0.84 | 4/4, 0 FP, P 1.00, R 1.00, κ 1.00 |
 | rule3 | 2/6, 0 FP, P 1.00, R 0.33, κ 0.46 | 2/6, 0 FP, P 1.00, R 0.33, κ 0.46 | 2/6, 0 FP, P 1.00, R 0.33, κ 0.46 | 3/6, 0 FP, P 1.00, R 0.50, κ 0.63 |
 | rule4 | 0/4, 0 FP, P –, R 0.00, κ 0.00 | 0/4, 0 FP, P –, R 0.00, κ 0.00 | 0/4, 0 FP, P –, R 0.00, κ 0.00 | 0/4, 0 FP, P –, R 0.00, κ 0.00 |
-| other | 3/3, 5 FP, P 0.38, R 1.00, κ 0.49 | 3/3, 2 FP, P 0.60, R 1.00, κ 0.72 | 3/3, 3 FP, P 0.50, R 1.00, κ 0.63 | 3/3, 1 FP, P 0.75, R 1.00, κ 0.84 |
+| other | 4/4, 4 FP, P 0.50, R 1.00, κ 0.62 | 4/4, 1 FP, P 0.80, R 1.00, κ 0.87 | 4/4, 2 FP, P 0.67, R 1.00, κ 0.77 | 3/4, 1 FP, P 0.75, R 0.75, κ 0.72 |
 
 **Code + judge vs labels, dev (40)**
 
@@ -56,7 +57,7 @@ Each cell: caught / labeled, false positives, precision, recall, Cohen's κ.
 | rule2 | 4/4, 0 FP, P 1.00, R 1.00, κ 1.00 | 4/4, 0 FP, P 1.00, R 1.00, κ 1.00 | 4/4, 0 FP, P 1.00, R 1.00, κ 1.00 |
 | rule3 | 6/6, 0 FP, P 1.00, R 1.00, κ 1.00 | 6/6, 0 FP, P 1.00, R 1.00, κ 1.00 | 6/6, 0 FP, P 1.00, R 1.00, κ 1.00 |
 | rule4 | 4/4, 0 FP, P 1.00, R 1.00, κ 1.00 | 4/4, 0 FP, P 1.00, R 1.00, κ 1.00 | 4/4, 0 FP, P 1.00, R 1.00, κ 1.00 |
-| other | 2/3, 1 FP, P 0.67, R 0.67, κ 0.64 | 3/3, 6 FP, P 0.33, R 1.00, κ 0.44 | 3/3, 2 FP, P 0.60, R 1.00, κ 0.72 |
+| other | 2/4, 1 FP, P 0.67, R 0.50, κ 0.53 | 4/4, 5 FP, P 0.44, R 1.00, κ 0.55 | 3/4, 2 FP, P 0.60, R 0.75, κ 0.63 |
 
 **Judge alone vs labels, held-out (20)**
 
@@ -96,7 +97,7 @@ Each cell: caught / labeled, false positives, precision, recall, Cohen's κ.
 | rule2 | 7/7, 0 FP, P 1.00, R 1.00, κ 1.00 | 7/7, 0 FP, P 1.00, R 1.00, κ 1.00 | 7/7, 0 FP, P 1.00, R 1.00, κ 1.00 | 7/7, 0 FP, P 1.00, R 1.00, κ 1.00 |
 | rule3 | 3/8, 0 FP, P 1.00, R 0.38, κ 0.49 | 3/8, 0 FP, P 1.00, R 0.38, κ 0.49 | 4/8, 0 FP, P 1.00, R 0.50, κ 0.61 | 3/8, 0 FP, P 1.00, R 0.38, κ 0.49 |
 | rule4 | 0/5, 0 FP, P –, R 0.00, κ 0.00 | 0/5, 0 FP, P –, R 0.00, κ 0.00 | 0/5, 0 FP, P –, R 0.00, κ 0.00 | 0/5, 0 FP, P –, R 0.00, κ 0.00 |
-| other | 3/4, 9 FP, P 0.25, R 0.75, κ 0.26 | 3/4, 12 FP, P 0.20, R 0.75, κ 0.19 | 3/4, 13 FP, P 0.19, R 0.75, κ 0.17 | 3/4, 7 FP, P 0.30, R 0.75, κ 0.33 |
+| other | 8/10, 4 FP, P 0.67, R 0.80, κ 0.63 | 8/10, 7 FP, P 0.53, R 0.80, κ 0.49 | 9/10, 7 FP, P 0.56, R 0.90, κ 0.56 | 9/10, 1 FP, P 0.90, R 0.90, κ 0.87 |
 
 **Code + judge vs labels, challenge (40)**
 
@@ -106,17 +107,17 @@ Each cell: caught / labeled, false positives, precision, recall, Cohen's κ.
 | rule2 | 4/7, 0 FP, P 1.00, R 0.57, κ 0.69 | 7/7, 0 FP, P 1.00, R 1.00, κ 1.00 | 7/7, 0 FP, P 1.00, R 1.00, κ 1.00 |
 | rule3 | 7/8, 0 FP, P 1.00, R 0.88, κ 0.92 | 8/8, 0 FP, P 1.00, R 1.00, κ 1.00 | 8/8, 0 FP, P 1.00, R 1.00, κ 1.00 |
 | rule4 | 4/5, 0 FP, P 1.00, R 0.80, κ 0.87 | 4/5, 0 FP, P 1.00, R 0.80, κ 0.87 | 4/5, 0 FP, P 1.00, R 0.80, κ 0.87 |
-| other | 0/4, 1 FP, P 0.00, R 0.00, κ -0.04 | 3/4, 10 FP, P 0.23, R 0.75, κ 0.24 | 3/4, 8 FP, P 0.27, R 0.75, κ 0.30 |
+| other | 0/10, 1 FP, P 0.00, R 0.00, κ -0.05 | 8/10, 5 FP, P 0.62, R 0.80, κ 0.58 | 9/10, 2 FP, P 0.82, R 0.90, κ 0.81 |
 
 **Decisions, challenge**
 
 | Run | Pass | Flag | Block | Labeled violations passed | Clean drafts flagged or blocked |
 |---|---|---|---|---|---|
-| Code only | 22 | 10 | 8 | 11 ['c_014', 'c_015', 'c_016', 'c_019', 'c_023', 'c_024', 'c_025', 'c_028', 'c_038', 'c_039', 'c_040'] | 1 |
-| Code + Haiku (run 1) | 7 | 25 | 8 | 0  | 5 |
-| Code + Haiku (run 2) | 7 | 25 | 8 | 0  | 5 |
-| Code + Haiku (run 3) | 7 | 25 | 8 | 0  | 5 |
-| Code + Sonnet | 9 | 23 | 8 | 0  | 3 |
+| Code only | 22 | 10 | 8 | 13 ['c_007', 'c_010', 'c_014', 'c_015', 'c_016', 'c_019', 'c_023', 'c_024', 'c_025', 'c_028', 'c_038', 'c_039', 'c_040'] | 1 |
+| Code + Haiku (run 1) | 7 | 25 | 8 | 0  | 3 |
+| Code + Haiku (run 2) | 7 | 25 | 8 | 0  | 3 |
+| Code + Haiku (run 3) | 7 | 25 | 8 | 0  | 3 |
+| Code + Sonnet | 9 | 23 | 8 | 0  | 1 |
 
 
 ## Judge against judge
@@ -145,7 +146,7 @@ were 50 pass, 10 flag, 0 block (Haiku judge) and 52 pass, 8 flag, 0 block (Sonne
    with code, and shows no leniency toward its own drafts.
 2. Rule 2 is the one place Sonnet did better (7/7 vs 5/7 on production drafts, same on the challenge set).
    Moving Rule 2 alone to Sonnet would cost about $0.01 per draft. With 2 misses this is a small-sample call.
-3. Most "other" noise, and the label misses above, are weekday and count claims. A deterministic check that
+3. The label misses above, and code alone missing 10 of 10 challenge "other" violations, are weekday and count claims. A deterministic check that
    matches "<weekday>" and "<n> <workout>" against the week's workouts would catch these exactly. That is a
    generic check, not a per-trace patch, so it doesn't break the challenge-set freeze.
 
