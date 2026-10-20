@@ -22,6 +22,22 @@ export LLM_MODEL=...            # optional
 
 Set `LLM_PROVIDER=replay` to use the recorded drafts in the traces file. The replay client makes no API call. It ignores the system prompt, so a prompt change has no effect in replay mode.
 
+## Pipeline (feature, evals and guardrails)
+
+One command runs everything on a traces file and writes one line per trace:
+`{"trace_id": "t_001", "decision": "flag", "reasons": ["..."]}`.
+
+```
+uv run weekly-summary pipeline data/traces.jsonl --out results/decisions.jsonl                # new drafts, then check and decide
+uv run weekly-summary pipeline data/traces.jsonl --no-generate --out results/decisions.jsonl  # decide the drafts already in the file
+uv run weekly-summary pipeline data/traces.jsonl --code-only --out results/decisions.jsonl    # same, without the LLM judge (no API key)
+uv run weekly-summary evaluate results/details.jsonl                                          # metrics vs labels/labels.jsonl
+```
+
+Add `--details results/details.jsonl` to keep every finding and draft for `evaluate`. The key is
+read from `ANTHROPIC_FUTURE_API_KEY`, then `ANTHROPIC_API_KEY`. Models come from `LLM_MODEL`
+(generator) and `JUDGE_MODEL`; both default to Haiku. `--max-calls` caps model calls per client.
+
 ## Commands
 
 ```
