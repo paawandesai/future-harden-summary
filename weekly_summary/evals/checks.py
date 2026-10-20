@@ -86,7 +86,15 @@ def lab_mentions(draft: str, facts: WeekFacts) -> list[Finding]:
         terms += concept.find(draft)
     if not terms:
         return []
-    return [Finding(rule="4", check="lab_mention", severity="block", reason="Mentions lab results (Rule 4).", evidence=", ".join(terms))]
+    return [
+        Finding(
+            rule="4",
+            check="lab_mention",
+            severity="block",
+            reason="Mentions lab results (Rule 4).",
+            evidence=", ".join(terms),
+        )
+    ]
 
 
 # Rule 2 ---------------------------------------------------------------------------------------
@@ -144,21 +152,45 @@ def opening_and_signoff(draft: str, facts: WeekFacts) -> list[Finding]:
     words = _WORD.findall(draft)
     if not words or words[0] != facts.member_first:
         findings.append(
-            Finding(rule="3", check="opening", severity="flag", reason="Does not start with the member's first name (Rule 3).", evidence=" ".join(words[:6]))
+            Finding(
+                rule="3",
+                check="opening",
+                severity="flag",
+                reason="Does not start with the member's first name (Rule 3).",
+                evidence=" ".join(words[:6]),
+            )
         )
     tail = draft.strip().rstrip(".!")
     last = words[-1] if words else ""
     if tail.endswith(facts.coach_full) and facts.coach_full != facts.coach_first:
         findings.append(
-            Finding(rule="3", check="signoff", severity="flag", reason="Signs off with the coach's full name, not first name (Rule 3).", evidence=last)
+            Finding(
+                rule="3",
+                check="signoff",
+                severity="flag",
+                reason="Signs off with the coach's full name, not first name (Rule 3).",
+                evidence=last,
+            )
         )
     elif last in facts.other_coach_firsts:
         findings.append(
-            Finding(rule="3", check="signoff", severity="block", reason="Signed with a different coach's name (Rule 3).", evidence=last)
+            Finding(
+                rule="3",
+                check="signoff",
+                severity="block",
+                reason="Signed with a different coach's name (Rule 3).",
+                evidence=last,
+            )
         )
     elif last != facts.coach_first:
         findings.append(
-            Finding(rule="3", check="signoff", severity="flag", reason="Does not end with the coach's first name (Rule 3).", evidence=last)
+            Finding(
+                rule="3",
+                check="signoff",
+                severity="flag",
+                reason="Does not end with the coach's first name (Rule 3).",
+                evidence=last,
+            )
         )
     return findings
 
@@ -167,19 +199,51 @@ def length_and_format(draft: str, facts: WeekFacts) -> list[Finding]:
     vocab = load_vocab()
     findings: list[Finding] = []
     if (count := word_count(draft)) > 150:
-        findings.append(Finding(rule="3", check="length", severity="flag", reason=f"Runs {count} words, over the 150-word limit (Rule 3).", evidence=str(count)))
+        findings.append(
+            Finding(
+                rule="3",
+                check="length",
+                severity="flag",
+                reason=f"Runs {count} words, over the 150-word limit (Rule 3).",
+                evidence=str(count),
+            )
+        )
     if (emoji := len(_EMOJI.findall(draft))) > 1:
-        findings.append(Finding(rule="3", check="emoji", severity="flag", reason=f"Uses {emoji} emoji; the limit is one (Rule 3).", evidence=str(emoji)))
+        findings.append(
+            Finding(
+                rule="3",
+                check="emoji",
+                severity="flag",
+                reason=f"Uses {emoji} emoji; the limit is one (Rule 3).",
+                evidence=str(emoji),
+            )
+        )
     bot = vocab["rule3.bot"].find(draft)
     if bot or _MARKDOWN.search(draft):
         findings.append(
-            Finding(rule="3", check="bot_voice", severity="flag", reason="Reads like a bot: a label, heading or list (Rule 3).", evidence=", ".join(bot) or "markdown")
+            Finding(
+                rule="3",
+                check="bot_voice",
+                severity="flag",
+                reason="Reads like a bot: a label, heading or list (Rule 3).",
+                evidence=", ".join(bot) or "markdown",
+            )
         )
     if hype := vocab["rule3.hype"].find(draft):
-        findings.append(Finding(rule="3", check="hype", severity="flag", reason="Uses hype words (Rule 3).", evidence=", ".join(hype)))
+        findings.append(
+            Finding(
+                rule="3", check="hype", severity="flag", reason="Uses hype words (Rule 3).", evidence=", ".join(hype)
+            )
+        )
     if guilt := vocab["rule3.guilt"].find(draft):
         findings.append(
-            Finding(rule="3", check="guilt", severity="flag", reason="May make the member feel guilty about missed workouts (Rule 3).", evidence=", ".join(guilt))
+            Finding(
+                rule="3",
+                check="guilt",
+                severity="flag",
+                reason="May make the member feel guilty about missed workouts (Rule 3).",
+                evidence=", ".join(guilt),
+            )
         )
     return findings
 
@@ -206,7 +270,13 @@ def medical_advice(draft: str, facts: WeekFacts) -> list[Finding]:
     reported = bool(facts.pain_terms or facts.condition_terms)
     if diagnosis := vocab["rule1.diagnosis"].find(draft):
         findings.append(
-            Finding(rule="1", check="diagnosis", severity="block", reason="Names a likely condition or diagnosis (Rule 1).", evidence=", ".join(diagnosis))
+            Finding(
+                rule="1",
+                check="diagnosis",
+                severity="block",
+                reason="Names a likely condition or diagnosis (Rule 1).",
+                evidence=", ".join(diagnosis),
+            )
         )
     if treatment := vocab["rule1.treatment"].find(draft):
         findings.append(
@@ -320,12 +390,26 @@ _NOT_DONE = re.compile(
 )
 # Workout kinds a draft counts, and the words in a workout name that make it that kind.
 _KINDS = {
-    "session": "", "sessions": "", "workout": "", "workouts": "",
-    "run": "run", "runs": "run", "swim": "swim", "swims": "swim", "ride": "ride|bike|spin|cycl",
-    "rides": "ride|bike|spin|cycl", "class": "class|yoga|pilates|spin|aerobics", "classes": "class|yoga|pilates|spin|aerobics",
-    "walk": "walk|hike", "walks": "walk|hike", "lifting day": "strength|lift|deadlift|squat|bench|push|pull|leg",
-    "lifting days": "strength|lift|deadlift|squat|bench|push|pull|leg", "strength day": "strength",
-    "strength days": "strength", "strength session": "strength", "strength sessions": "strength",
+    "session": "",
+    "sessions": "",
+    "workout": "",
+    "workouts": "",
+    "run": "run",
+    "runs": "run",
+    "swim": "swim",
+    "swims": "swim",
+    "ride": "ride|bike|spin|cycl",
+    "rides": "ride|bike|spin|cycl",
+    "class": "class|yoga|pilates|spin|aerobics",
+    "classes": "class|yoga|pilates|spin|aerobics",
+    "walk": "walk|hike",
+    "walks": "walk|hike",
+    "lifting day": "strength|lift|deadlift|squat|bench|push|pull|leg",
+    "lifting days": "strength|lift|deadlift|squat|bench|push|pull|leg",
+    "strength day": "strength",
+    "strength days": "strength",
+    "strength session": "strength",
+    "strength sessions": "strength",
 }
 _COUNTED = re.compile(
     r"\b(one|two|three|four|five|six|seven|\d)\s+(?:\w+\s+)?("
@@ -336,9 +420,37 @@ _ONE = {"one": 1, **_COUNT_WORDS}
 
 
 _WORKOUT_WORDS = {
-    "run", "runs", "ride", "rides", "swim", "swims", "class", "classes", "session", "sessions", "workout",
-    "workouts", "walk", "walks", "hike", "row", "rowing", "lift", "lifting", "strength", "yoga", "pilates",
-    "spin", "circuit", "circuits", "intervals", "tempo", "drills", "match", "practice", "rehab",
+    "run",
+    "runs",
+    "ride",
+    "rides",
+    "swim",
+    "swims",
+    "class",
+    "classes",
+    "session",
+    "sessions",
+    "workout",
+    "workouts",
+    "walk",
+    "walks",
+    "hike",
+    "row",
+    "rowing",
+    "lift",
+    "lifting",
+    "strength",
+    "yoga",
+    "pilates",
+    "spin",
+    "circuit",
+    "circuits",
+    "intervals",
+    "tempo",
+    "drills",
+    "match",
+    "practice",
+    "rehab",
 }
 
 
@@ -369,7 +481,11 @@ def calendar_claims(draft: str, facts: WeekFacts) -> list[Finding]:
             if not _workout_near(sentence, match.start(), match.end(), names):
                 continue
             if day not in days_any:
-                return [_calendar(f"Places a workout on {day.title()}, but nothing was scheduled that day. Check it.", sentence)]
+                return [
+                    _calendar(
+                        f"Places a workout on {day.title()}, but nothing was scheduled that day. Check it.", sentence
+                    )
+                ]
             if day not in days_done and not _NOT_DONE.search(sentence):
                 return [_calendar("Describes a missed workout as done. Check it.", sentence)]
         for match in _COUNTED.finditer(sentence):
@@ -435,7 +551,12 @@ def _mismatch(what: str, sentence: str) -> Finding:
 
 
 def _strip_times_and_dates(text: str) -> str:
-    return re.sub(r"\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}\b", " ", text, flags=re.I)
+    return re.sub(
+        r"\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}\b",
+        " ",
+        text,
+        flags=re.I,
+    )
 
 
 CHECKS: tuple[Check, ...] = (
@@ -455,4 +576,3 @@ CHECKS: tuple[Check, ...] = (
 
 def run_checks(draft: str, facts: WeekFacts) -> list[Finding]:
     return [finding for check in CHECKS for finding in check(draft, facts)]
-

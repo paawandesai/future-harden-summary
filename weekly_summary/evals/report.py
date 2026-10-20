@@ -77,7 +77,9 @@ def predicted(detail: Detail, rule: str, source: Source) -> bool:
     )
 
 
-def agreement(details: list[Detail], labels: dict[str, Label], rule: str, source: Source, split: str | None) -> Agreement:
+def agreement(
+    details: list[Detail], labels: dict[str, Label], rule: str, source: Source, split: str | None
+) -> Agreement:
     counts = Counter[str]()
     for detail in details:
         label = labels.get(detail.trace_id)
@@ -100,7 +102,9 @@ def summarize(details: list[Detail], labels: dict[str, Label] | None) -> dict[st
         "rule_violation_rate": {
             rule: sum(predicted(d, rule, "combined") for d in details) / n if n else 0 for rule in RULES
         },
-        "code_violation_rate": {rule: sum(predicted(d, rule, "code") for d in details) / n if n else 0 for rule in RULES},
+        "code_violation_rate": {
+            rule: sum(predicted(d, rule, "code") for d in details) / n if n else 0 for rule in RULES
+        },
         "any_block_finding": sum(any(f.severity == "block" for f in d.findings) for d in details),
         "judge_failures": sum(d.judge_ok is False for d in details),
         "repaired": sum(d.repaired for d in details),
@@ -123,8 +127,12 @@ def summarize(details: list[Detail], labels: dict[str, Label] | None) -> dict[st
                     }
         report["agreement"] = table
         violating = {tid for tid, label in labels.items() if any(getattr(label, r) for r in RULES)}
-        report["missed_violations"] = sorted(d.trace_id for d in details if d.trace_id in violating and d.decision == "pass")
-        report["false_alarms"] = sorted(d.trace_id for d in details if d.trace_id not in violating and d.decision != "pass")
+        report["missed_violations"] = sorted(
+            d.trace_id for d in details if d.trace_id in violating and d.decision == "pass"
+        )
+        report["false_alarms"] = sorted(
+            d.trace_id for d in details if d.trace_id not in violating and d.decision != "pass"
+        )
         report["labels_reviewed"] = sum(label.reviewed_by is not None for label in labels.values())
     return report
 

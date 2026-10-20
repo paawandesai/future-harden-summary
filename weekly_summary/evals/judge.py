@@ -152,7 +152,7 @@ class Judge:
                 return None, [_failure(f"{type(error).__name__}")]
         try:
             output = _parse(text)
-        except (ValueError, ValidationError):
+        except ValueError, ValidationError:
             return None, [_failure("unparseable output")]
         if path:
             path.parent.mkdir(parents=True, exist_ok=True)

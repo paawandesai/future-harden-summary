@@ -34,9 +34,7 @@ def make_week(first_name: str, steps: int) -> MemberWeek:
         ],
         metrics=Metrics(avg_sleep_hours=7.2, avg_steps=steps, resting_hr_bpm=58, hrv_ms=64),
         new_labs=[],
-        messages=[
-            Message(sent_at=datetime(2026, 9, 9, 8, 30), sender="member", text="Legs feel good!")
-        ],
+        messages=[Message(sent_at=datetime(2026, 9, 9, 8, 30), sender="member", text="Legs feel good!")],
     )
 
 

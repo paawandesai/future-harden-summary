@@ -17,9 +17,22 @@ from weekly_summary.prompt import SYSTEM_PROMPT, V3_SYSTEM_PROMPT, render_user_m
 
 # Code findings worth one more model call. Grounding and judge findings go to the coach instead.
 REPAIRABLE = {
-    "biomarker_value", "lab_mention", "avoid_weight_talk", "weight_target", "opening", "signoff",
-    "length", "emoji", "bot_voice", "hype", "guilt", "diagnosis", "treatment", "train_through",
-    "coach_contact", "specificity",
+    "biomarker_value",
+    "lab_mention",
+    "avoid_weight_talk",
+    "weight_target",
+    "opening",
+    "signoff",
+    "length",
+    "emoji",
+    "bot_voice",
+    "hype",
+    "guilt",
+    "diagnosis",
+    "treatment",
+    "train_through",
+    "coach_contact",
+    "specificity",
 }
 
 

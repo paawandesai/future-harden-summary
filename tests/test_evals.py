@@ -151,7 +151,9 @@ class FakeClient:
 
 def verdicts(**violated: str) -> str:
     rules = {"1": "", "2": "", "3": "", "other": ""} | {k.removeprefix("r"): v for k, v in violated.items()}
-    return json.dumps({"verdicts": [{"rule": r, "violated": bool(q), "quote": q, "why": "x"} for r, q in rules.items()]})
+    return json.dumps(
+        {"verdicts": [{"rule": r, "violated": bool(q), "quote": q, "why": "x"} for r, q in rules.items()]}
+    )
 
 
 def test_judge_findings_only_flag():
@@ -191,7 +193,9 @@ def test_call_budget_stops_calls():
 def test_pipeline_writes_one_line_per_trace_in_the_required_shape(tmp_path, capsys):
     bad = CLEAN.replace("Same plan", "Your resting heart rate sat at 58. Same plan")
     traces = [
-        Trace(trace_id=f"t_{i}", created_at=datetime(2026, 9, 14), prompt_version="v3", model="m", input=week(), output=o)
+        Trace(
+            trace_id=f"t_{i}", created_at=datetime(2026, 9, 14), prompt_version="v3", model="m", input=week(), output=o
+        )
         for i, o in enumerate([CLEAN, bad, ""])
     ]
     path, out = tmp_path / "traces.jsonl", tmp_path / "out.jsonl"
@@ -215,7 +219,9 @@ def test_crosscheck_counts_only_judge_verdicts():
             Finding(rule=r, check=f"{check}{r}", severity="flag", reason="x", evidence="", source="judge")  # type: ignore[arg-type]
             for r in rules
         ]
-        return Detail(trace_id=tid, mode="no-generate", draft="", decision="flag", reasons=[], findings=findings, judge_ok=True)
+        return Detail(
+            trace_id=tid, mode="no-generate", draft="", decision="flag", reasons=[], findings=findings, judge_ok=True
+        )
 
     a = [detail("t1", ["1"]), detail("t2", ["2"])]
     b = [detail("t1", ["1", "other"]), detail("t2", [])]

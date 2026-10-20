@@ -130,7 +130,9 @@ def main(argv: list[str] | None = None) -> None:
     pipeline.add_argument("--workers", type=int, default=4)
     pipeline.add_argument("--max-calls", type=int, default=500, help="stop calling a model after this many calls")
     pipeline.add_argument("--prompt", choices=["v4", "v3"], default="v4", help="v3 only to measure the old prompt")
-    pipeline.add_argument("--judge-repeat", type=int, default=0, help="judge again under a fresh cache key (variance runs)")
+    pipeline.add_argument(
+        "--judge-repeat", type=int, default=0, help="judge again under a fresh cache key (variance runs)"
+    )
 
     evaluate = commands.add_parser("evaluate", help="metrics for a details file, against labels")
     evaluate.add_argument("details", type=Path)

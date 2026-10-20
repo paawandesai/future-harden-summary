@@ -11,9 +11,26 @@ from weekly_summary.models import MemberWeek
 _NUMBER = re.compile(r"\b\d{1,2}:\d{2}\b|(?<![\w.:])\d[\d,]*(?:\.\d+)?(?:%)?(?![\w:])")
 
 _UNITS = {
-    "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8,
-    "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15,
-    "sixteen": 16, "seventeen": 17, "eighteen": 18, "nineteen": 19,
+    "zero": 0,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+    "thirteen": 13,
+    "fourteen": 14,
+    "fifteen": 15,
+    "sixteen": 16,
+    "seventeen": 17,
+    "eighteen": 18,
+    "nineteen": 19,
 }
 _TENS = {"twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90}
 _WORD_NUMBER = re.compile(
@@ -71,8 +88,29 @@ KNOWN_COACH_FIRSTS = frozenset({"Jordan", "Elena", "Priya", "Marcus", "Sam", "Ta
 
 _DAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 _GENERIC_WORKOUT_WORDS = {
-    "strength", "full", "body", "upper", "lower", "day", "session", "class", "run", "easy", "walk",
-    "the", "and", "with", "of", "a", "to", "new", "block", "only", "intro", "practice", "x",
+    "strength",
+    "full",
+    "body",
+    "upper",
+    "lower",
+    "day",
+    "session",
+    "class",
+    "run",
+    "easy",
+    "walk",
+    "the",
+    "and",
+    "with",
+    "of",
+    "a",
+    "to",
+    "new",
+    "block",
+    "only",
+    "intro",
+    "practice",
+    "x",
 }
 
 
@@ -140,7 +178,9 @@ def week_facts(week: MemberWeek) -> WeekFacts:
     metrics = [week.metrics] + ([week.prior_week_metrics] if week.prior_week_metrics else [])
     weights = tuple(m.weight_lbs for m in metrics if m.weight_lbs is not None)
     biomarkers = (
-        Biomarker("resting heart rate", vocab["rule4.biomarker.resting_hr"], tuple(float(m.resting_hr_bpm) for m in metrics)),
+        Biomarker(
+            "resting heart rate", vocab["rule4.biomarker.resting_hr"], tuple(float(m.resting_hr_bpm) for m in metrics)
+        ),
         Biomarker("HRV", vocab["rule4.biomarker.hrv"], tuple(float(m.hrv_ms) for m in metrics)),
         Biomarker("body weight", vocab["rule4.biomarker.weight"], weights),
     )
