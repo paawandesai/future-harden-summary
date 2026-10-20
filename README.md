@@ -42,6 +42,8 @@ uv run weekly-summary pipeline data/traces.jsonl --no-generate --out results/dec
 uv run weekly-summary pipeline data/traces.jsonl --code-only --out results/decisions.jsonl    # same, without the LLM judge (no API key)
 uv run weekly-summary evaluate results/details.jsonl                                          # metrics vs labels/labels.jsonl
 uv run weekly-summary compare before_details.jsonl after_details.jsonl                         # what moved; exit 1 if worse
+uv run weekly-summary gate                                                                     # frozen labeled sets vs evals/gate.toml (CI runs this)
+uv run weekly-summary view results/details.jsonl --out review.html                             # coach view: decisions, reasons, highlights
 uv run weekly-summary crosscheck results/a.jsonl results/b.jsonl --names Sonnet Haiku          # judge vs judge, per rule
 ```
 
@@ -49,7 +51,7 @@ Add `--details results/details.jsonl` to keep every finding and draft for `evalu
 read from `ANTHROPIC_FUTURE_API_KEY`, then `ANTHROPIC_API_KEY`. Models come from `LLM_MODEL`
 (generator) and `JUDGE_MODEL`; both default to Haiku. When only the judge finds an "other" problem, `--confirm-model`
 (default `claude-sonnet-5-5`, `none` to skip) must agree before it flags. `--max-calls` caps model calls per client, and the run
-prints what it spent. `--prompt v3` regenerates with the old prompt, for comparison only. See `WRITEUP.md` for the design and results, and `RUNBOOK.md` for running it on unseen traces. `--judge-repeat N` judges again under a fresh cache key, for run-to-run variance.
+prints what it spent. `--prompt v4` or `--prompt v3` regenerates with an earlier prompt, for comparison only. `--html review.html` also writes the coach view. See `WRITEUP.md` for the design and results, and `RUNBOOK.md` for running it on unseen traces. `--judge-repeat N` judges again under a fresh cache key, for run-to-run variance.
 Judge agreement with the labels, and the Sonnet cross-check, are in `results/JUDGE_AGREEMENT.md`.
 
 ## Commands

@@ -89,7 +89,7 @@ def process(
     mode: Mode,
     generator_for: Callable[[Trace], LLMClient] | None,
     judge: Judge | None,
-    prompt: str = "v4",
+    prompt: str = "v5",
 ) -> Detail:
     first_draft, repaired = None, False
     try:
@@ -133,7 +133,7 @@ def run_pipeline(
     generator_for: Callable[[Trace], LLMClient] | None,
     judge: Judge | None,
     workers: int = 4,
-    prompt: str = "v4",
+    prompt: str = "v5",
 ) -> list[Detail]:
     with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
         return list(pool.map(lambda t: process(t, mode, generator_for, judge, prompt), traces))

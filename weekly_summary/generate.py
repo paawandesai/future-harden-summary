@@ -13,7 +13,13 @@ from weekly_summary.evals.checks import run_checks
 from weekly_summary.evals.facts import week_facts
 from weekly_summary.llm import LLMClient
 from weekly_summary.models import MemberWeek
-from weekly_summary.prompt import SYSTEM_PROMPT, V3_SYSTEM_PROMPT, render_user_message, render_v3_user_message
+from weekly_summary.prompt import (
+    SYSTEM_PROMPT,
+    V3_SYSTEM_PROMPT,
+    V4_SYSTEM_PROMPT,
+    render_user_message,
+    render_v3_user_message,
+)
 
 # Code findings worth one more model call. Grounding and judge findings go to the coach instead.
 REPAIRABLE = {
@@ -43,16 +49,17 @@ class Draft(BaseModel):
     repair_reasons: list[str]
 
 
-def generate_summary(week: MemberWeek, client: LLMClient) -> str:
-    return client.complete(SYSTEM_PROMPT, render_user_message(week))
+def generate_summary(week: MemberWeek, client: LLMClient, system: str = SYSTEM_PROMPT) -> str:
+    return client.complete(system, render_user_message(week))
 
 
-def draft_summary(week: MemberWeek, client: LLMClient, repair: bool = True, prompt: str = "v4") -> Draft:
+def draft_summary(week: MemberWeek, client: LLMClient, repair: bool = True, prompt: str = "v5") -> Draft:
     if prompt == "v3":
         # Ablation only: the old prompt and raw input, no repair.
         text = client.complete(V3_SYSTEM_PROMPT, render_v3_user_message(week))
         return Draft(text=text, first_draft=text, repaired=False, repair_reasons=[])
-    first = generate_summary(week, client)
+    system = V4_SYSTEM_PROMPT if prompt == "v4" else SYSTEM_PROMPT
+    first = generate_summary(week, client, system)
     findings = [f for f in run_checks(first, week_facts(week)) if f.check in REPAIRABLE]
     if not repair or not findings:
         return Draft(text=first, first_draft=first, repaired=False, repair_reasons=[])
@@ -66,7 +73,7 @@ def draft_summary(week: MemberWeek, client: LLMClient, repair: bool = True, prom
         + "\n\nWrite a new message that follows every rule. Reply with the message only."
     )
     try:
-        second = client.complete(SYSTEM_PROMPT, request)
+        second = client.complete(system, request)
     except LookupError:
         # The replay client only knows first drafts; keep the first draft and let the checks decide.
         return Draft(text=first, first_draft=first, repaired=False, repair_reasons=reasons)

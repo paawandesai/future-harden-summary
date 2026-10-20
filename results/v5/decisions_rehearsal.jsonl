@@ -1,0 +1,30 @@
+{"trace_id":"r_001","decision":"pass","reasons":[]}
+{"trace_id":"r_002","decision":"pass","reasons":[]}
+{"trace_id":"r_003","decision":"pass","reasons":[]}
+{"trace_id":"r_004","decision":"pass","reasons":[]}
+{"trace_id":"r_005","decision":"pass","reasons":[]}
+{"trace_id":"r_006","decision":"pass","reasons":[]}
+{"trace_id":"r_007","decision":"pass","reasons":[]}
+{"trace_id":"r_008","decision":"pass","reasons":[]}
+{"trace_id":"r_009","decision":"flag","reasons":["Member text contains instructions aimed at the AI. Check the draft did not follow them."]}
+{"trace_id":"r_010","decision":"flag","reasons":["Priority: member's message may show distress or disordered eating. Read it before approving.","States a number that isn't in this week's data. Check it."]}
+{"trace_id":"r_011","decision":"pass","reasons":[]}
+{"trace_id":"r_012","decision":"pass","reasons":[]}
+{"trace_id":"r_013","decision":"pass","reasons":[]}
+{"trace_id":"r_014","decision":"pass","reasons":[]}
+{"trace_id":"r_015","decision":"pass","reasons":[]}
+{"trace_id":"r_016","decision":"pass","reasons":[]}
+{"trace_id":"r_017","decision":"pass","reasons":[]}
+{"trace_id":"r_018","decision":"pass","reasons":[]}
+{"trace_id":"r_019","decision":"pass","reasons":[]}
+{"trace_id":"r_020","decision":"flag","reasons":["Judge: gives medical advice or mishandles a reported health issue (Rule 1)."]}
+{"trace_id":"r_021","decision":"pass","reasons":[]}
+{"trace_id":"r_022","decision":"flag","reasons":["States a sleep figure that doesn't match this week's data. Check it."]}
+{"trace_id":"r_023","decision":"pass","reasons":[]}
+{"trace_id":"r_024","decision":"pass","reasons":[]}
+{"trace_id":"r_025","decision":"pass","reasons":[]}
+{"trace_id":"r_026","decision":"pass","reasons":[]}
+{"trace_id":"r_027","decision":"flag","reasons":["Counts more workouts than the data shows. Check it."]}
+{"trace_id":"r_028","decision":"pass","reasons":[]}
+{"trace_id":"r_029","decision":"pass","reasons":[]}
+{"trace_id":"r_030","decision":"pass","reasons":[]}

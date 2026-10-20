@@ -348,6 +348,9 @@ def test_lift_weight_is_a_load_even_when_avoiding_weight_talk():
 
 def test_all_n_with_a_unit_is_a_distance_not_a_session_count():
     assert "session_count" not in checks(CLEAN.replace("Same plan", "You kept it easy for all 9 km. Same plan"), week())
+    assert "session_count" not in checks(
+        CLEAN.replace("Same plan", "You held pace across all six 800s. Same plan"), week()
+    )
 
 
 def test_gate_fails_when_a_set_gets_more_wrong_than_allowed(tmp_path):

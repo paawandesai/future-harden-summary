@@ -54,7 +54,11 @@ and Sonnet 4, so Haiku was not lenient on its own drafts. Details: `results/JUDG
   mean length.
 
 `weekly-summary compare <before> <after>` prints what moved between two runs. It exits non-zero if a labeled
-violation starts passing or more clean drafts get flagged.
+violation starts passing or more clean drafts get flagged. **CI enforces the evals:** `weekly-summary gate` runs
+every frozen labeled set on each merge request and fails if any set misses more violations or flags more clean
+drafts than `weekly_summary/evals/gate.toml` allows. It needs no API key, because judge verdicts replay from the
+committed cache. `weekly-summary view` (or `pipeline --html`) writes the coach's page: each draft with its
+decision, its reasons and the matched words highlighted (`results/views/`).
 
 ## 2. Findings (60 production drafts, reviewed labels)
 
@@ -101,7 +105,7 @@ to steer the output, with nothing for it to decide.
 - **Pass:** nothing found.
 
 **Expected flag rate: about 8% (3–12%), with almost no blocks.** That is 2 to 7 of 60 drafts per run, across 8
-independent generations (`results/after`, `results/before_after`). Most flags are calendar mismatches a coach
+v4 generations (`results/after`, `results/before_after`) and 2 v5 generations (`results/v5`), with 0 blocks. Most flags are calendar mismatches a coach
 confirms in seconds. Coaches will keep reading at roughly one draft in twelve, because each reason says what to
 check and a flag is often real. The full command on the 30 unseen rehearsal traces gave 28 pass, 1 flag (a
 distress message) and 1 block.
@@ -125,7 +129,13 @@ Sonnet confirmation.
 |---|---|---|---|---|---|---|---|
 | Before: production drafts (prompt v3) | 29–31 | 8–10 | 6 | 7 | 7 | 11–14 | 29–31 / 12–14 / 17 |
 | Old prompt v3 on Haiku | 60 | 16 | 4 | 21 | 60 | 16 | 0 / 0 / 60 |
-| **New workflow on Haiku, 3 runs** | **2, 4, 3** | 0, 2, 2 | 1, 1, 0 | 0 | 0 | 1, 1, 1 | 58 / 2 / 0, 56 / 4 / 0, 57 / 3 / 0 |
+| **New workflow on Haiku (prompt v4), 3 runs** | **2, 4, 3** | 0, 2, 2 | 1, 1, 0 | 0 | 0 | 1, 1, 1 | 58 / 2 / 0, 56 / 4 / 0, 57 / 3 / 0 |
+| Prompt v5 (shipped), 2 runs | 7, 4 | 4, 1 | 0 | 0 | 0 | 5, 3 | 53 / 7 / 0, 56 / 4 / 0 |
+
+v5 changes one line: the model must leave lab requests out entirely, instead of saying it can't discuss them.
+On the rehearsal trace with an injected request for cholesterol numbers, v4's draft was blocked for "I'm not able
+to discuss test results". v5's draft doesn't mention tests and is only flagged for the injection. Otherwise v5's
+flag counts are within v4's run-to-run range (2–7 of 60). Two runs can't show more than that.
 
 Every new draft names something specific from the week, and mean length went from 78 words to 86. A blind
 hand-labeled sample of 30 new drafts had 1 violation (t_049, Rule 2), and it was flagged.
@@ -140,8 +150,8 @@ hand-labeled sample of 30 new drafts had 1 violation (t_049, Rule 2), and it was
    vocabulary. Code alone still misses paraphrased advice and guilt (rehearsal r_007, r_024), which the judge
    catches.
 4. Move Rule 2 judging to Sonnet if more labels confirm Haiku's two production misses (t_008, t_048).
-5. Tell the generator never to acknowledge requests for lab data, since saying "I can't discuss test results"
-   still blocks.
+5. Hand-label v5 drafts. Most v5 flags are judge Rule 1 or "other" calls on drafts that look clean, so flag
+   precision on new drafts is the number to raise next.
 
 ## 7. AI use
 

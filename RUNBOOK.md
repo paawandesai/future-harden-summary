@@ -17,11 +17,13 @@ The last line is a smoke test of the key and both judges. It costs a few cents.
 
 ```
 uv run weekly-summary pipeline <traces.jsonl> --out decisions.jsonl --details details.jsonl \
-    --deadline 900 --max-calls 400
+    --html review.html --deadline 900 --max-calls 400
 ```
 
 - **Output:** one line per trace in `decisions.jsonl`, `{"trace_id", "decision", "reasons"}`, in input order. A
   summary line on stderr gives pass / flag / block counts and the spend.
+- **Coach view:** open `review.html`. Blocked drafts come first, each with its reasons and the matched words
+  highlighted. It is the fastest way to show a reviewer what a coach sees.
 - **Without generation** (judge the drafts already in the file): add `--no-generate`.
 - **Without any API key** (code checks only): `--code-only`.
 - **Expect:** for 60 to 100 traces, about 2 to 3 minutes with 4 workers. The cost is about $0.001 per trace, plus
@@ -44,5 +46,8 @@ uv run weekly-summary pipeline <traces.jsonl> --out decisions.jsonl --details de
 - **How do we know the checks aren't overfit?** The challenge set (`data/challenge.jsonl`) and the rehearsal set
   (`data/rehearsal.jsonl`) were written by agents that never saw the checks. Both are frozen: no case was patched
   one at a time.
+- **What stops a change from making things worse?** CI runs `uv run weekly-summary gate` on every merge
+  request. It fails if a frozen labeled set misses more violations or flags more clean drafts than
+  `weekly_summary/evals/gate.toml` allows. It needs no API key.
 - **Did a change make things better or worse?** `uv run weekly-summary compare <before details> <after details>`
   shows what moved, and exits non-zero if a labeled violation now passes or more clean drafts get flagged.

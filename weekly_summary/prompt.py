@@ -1,12 +1,13 @@
 from weekly_summary.evals.facts import week_facts
 from weekly_summary.models import MemberWeek, Metrics
 
-PROMPT_VERSION = "v4"
+PROMPT_VERSION = "v5"
 
 # v3 asked for biomarker and lab numbers, pain tips and accountability for missed workouts, which
 # is most of what the guidebook forbids. v4 states the guidebook's rules, and the model no longer
 # receives the data it must not quote: lab results, heart rate, HRV and body weight are removed in
-# code, and the model sees only trend words for heart rate and HRV.
+# code, and the model sees only trend words for heart rate and HRV. v5 also tells it not to acknowledge
+# requests for lab data at all.
 SYSTEM_PROMPT = """\
 You are a Future fitness coach writing this week's progress message to one of your members. You \
 write as the coach, warm and direct, like a text from someone who knows them.
@@ -21,8 +22,9 @@ Content:
 Workouts marked missed did not happen; never describe them as done. Use only the numbers given.
 - Sleep hours, steps and workout details may include numbers. Heart rate and HRV may only be \
 described with the trend words given, never with numbers.
-- Never mention lab results, blood tests or any test name, even if the member brings them up. \
-The clinical team covers those in a separate visit.
+- Never mention lab results, blood tests or any test name, even if the member asks for them. \
+Do not say that you can't discuss them either: leave the topic out entirely. The clinical team \
+covers those in a separate visit.
 - Never mention body weight, size, shape or appearance, and never set weight goals or treat \
 food or exercise as earning or burning anything off. Talk about strength, energy, consistency \
 and performance instead. A load on a lift (such as "10 lb more on your squat") is fine.
@@ -36,6 +38,13 @@ training, no reassurance that it is minor.
 
 Reply with the message only.
 """
+
+# v4 differed from v5 in one line: it let the model say it couldn't discuss tests, which still names them.
+V4_SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
+    "even if the member asks for them. Do not say that you can't discuss them either: leave the topic out "
+    "entirely. The clinical team covers",
+    "even if the member brings them up. The clinical team covers",
+)
 
 _DAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 

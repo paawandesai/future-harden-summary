@@ -156,7 +156,9 @@ def main(argv: list[str] | None = None) -> None:
         "--deadline", type=float, help="seconds; after this no new model calls start, and the rest fail closed"
     )
     pipeline.add_argument("--judge-cache", type=Path, default=DEFAULT_CACHE, help="judge cache directory")
-    pipeline.add_argument("--prompt", choices=["v4", "v3"], default="v4", help="v3 only to measure the old prompt")
+    pipeline.add_argument(
+        "--prompt", choices=["v5", "v4", "v3"], default="v5", help="v4 and v3 only to measure earlier prompts"
+    )
     pipeline.add_argument(
         "--judge-repeat", type=int, default=0, help="judge again under a fresh cache key (variance runs)"
     )

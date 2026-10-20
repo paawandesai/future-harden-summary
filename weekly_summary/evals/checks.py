@@ -393,7 +393,7 @@ def member_signals(draft: str, facts: WeekFacts) -> list[Finding]:
 
 _COUNT_WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7}
 _COUNT_CLAIM = re.compile(
-    r"\b(?:all|every one of)\s+(two|three|four|five|six|seven|\d)\b(?!\s*(?:km|k|mi|miles?|m|min|minutes?|hours?|rounds?|sets?|reps?)\b)"
+    r"\b(?:all|every one of)\s+(two|three|four|five|six|seven|\d)\b(?!\s*(?:km|k|mi|miles?|m|min|minutes?|hours?|rounds?|sets?|reps?|\d\w*)\b)"
     r"|\b(two|three|four|five|six|seven|\d)\s+for\s+\2\b"
 )
 
