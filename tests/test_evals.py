@@ -223,3 +223,14 @@ def test_crosscheck_counts_only_judge_verdicts():
     assert result["drafts"] == 2
     assert result["1"] == {"a_flags": 1, "b_flags": 1, "both": 1, "agree": 1.0, "kappa": 1.0}
     assert result["2"]["a_flags"] == 1 and result["2"]["b_flags"] == 0  # type: ignore[index]
+
+
+def test_calendar_claims_catch_wrong_days_and_counts():
+    # week(): Tuesday tempo run done, Thursday hill repeats done unless missed=True.
+    assert "calendar" in checks(CLEAN.replace("Tuesday's tempo run", "Monday's tempo run"))
+    assert "calendar" in checks(CLEAN, week(missed=True))
+    assert "calendar" not in checks(
+        CLEAN.replace("Thursday's hill repeats got done too", "Thursday's hill repeats got missed"), week(missed=True)
+    )
+    assert "calendar" in checks(CLEAN.replace("Same plan", "Three runs this week. Same plan"))
+    assert "calendar" not in checks(CLEAN.replace("Same plan", "Next Monday we run again. Same plan"))

@@ -59,6 +59,7 @@ class WeekFacts:
     injection_terms: tuple[str, ...]
     sleep_hours: tuple[float, ...]
     daily_steps: tuple[float, ...]
+    sessions: tuple[tuple[str, str, bool], ...]  # (weekday, workout name, completed), lowercase
     completed: int
     planned: int
     specifics: tuple[Concept, ...]  # things the draft can name to be specific
@@ -159,6 +160,7 @@ def week_facts(week: MemberWeek) -> WeekFacts:
         injection_terms=tuple(vocab["escalate.injection"].find(said)),
         sleep_hours=tuple(m.avg_sleep_hours for m in metrics),
         daily_steps=tuple(float(m.avg_steps) for m in metrics),
+        sessions=tuple((_DAYS[w.day.weekday()], w.name.lower(), w.completed) for w in week.workouts),
         completed=sum(w.completed for w in week.workouts),
         planned=len(week.workouts),
         specifics=_specifics(week),

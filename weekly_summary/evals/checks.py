@@ -312,6 +312,81 @@ def grounding(draft: str, facts: WeekFacts) -> list[Finding]:
     return findings
 
 
+_WEEKDAY = re.compile(r"\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?:'s)?\b")
+_FORWARD = re.compile(r"\bnext\b|\blet's\b|\bwe'll\b|\bwill\b|\btomorrow\b|\bthis coming\b|\bplan\b")
+_NOT_DONE = re.compile(
+    r"\bmiss(?:ed|ing)?\b|\bskip(?:ped)?\b|didn't|did not|\bcut\b|\bslipped\b|\bmoved\b|\bswapped\b|"
+    r"\bswap\b|\brain|\bclosed\b|\bsick\b|\bcancel|\bbailed\b|\bstopped\b|\binstead\b|wasn't|couldn't|\bout\b|\boff\b"
+)
+# Workout kinds a draft counts, and the words in a workout name that make it that kind.
+_KINDS = {
+    "session": "", "sessions": "", "workout": "", "workouts": "",
+    "run": "run", "runs": "run", "swim": "swim", "swims": "swim", "ride": "ride|bike|spin|cycl",
+    "rides": "ride|bike|spin|cycl", "class": "class|yoga|pilates|spin|aerobics", "classes": "class|yoga|pilates|spin|aerobics",
+    "walk": "walk|hike", "walks": "walk|hike", "lifting day": "strength|lift|deadlift|squat|bench|push|pull|leg",
+    "lifting days": "strength|lift|deadlift|squat|bench|push|pull|leg", "strength day": "strength",
+    "strength days": "strength", "strength session": "strength", "strength sessions": "strength",
+}
+_COUNTED = re.compile(
+    r"\b(one|two|three|four|five|six|seven|\d)\s+(?:\w+\s+)?("
+    + "|".join(sorted((re.escape(k) for k in _KINDS), key=len, reverse=True))
+    + r")\b"
+)
+_ONE = {"one": 1, **_COUNT_WORDS}
+
+
+_WORKOUT_WORDS = {
+    "run", "runs", "ride", "rides", "swim", "swims", "class", "classes", "session", "sessions", "workout",
+    "workouts", "walk", "walks", "hike", "row", "rowing", "lift", "lifting", "strength", "yoga", "pilates",
+    "spin", "circuit", "circuits", "intervals", "tempo", "drills", "match", "practice", "rehab",
+}
+
+
+def _workout_near(sentence: str, start: int, end: int, names: set[str]) -> bool:
+    before = re.findall(r"[a-z][a-z'-]*", sentence[:start])[-4:]
+    after = re.findall(r"[a-z][a-z'-]*", sentence[end:])[:4]
+    return any(w in _WORKOUT_WORDS or w in names for w in before + after)
+
+
+def calendar_claims(draft: str, facts: WeekFacts) -> list[Finding]:
+    """Weekdays and workout counts in past-tense sentences, compared with the week's workouts.
+
+    A workout placed on a day with nothing scheduled, a missed workout described as done (unless
+    the sentence says it was missed), or more workouts of a kind than were done all mean the draft
+    states something untrue.
+    """
+    days_done = {day for day, _, done in facts.sessions if done}
+    days_any = {day for day, _, _ in facts.sessions}
+    names = {w for _, name, _ in facts.sessions for w in re.findall(r"[a-z]{3,}", name)} - {"day", "the", "and", "with"}
+    uncategorized = sum(
+        1 for _, name, ok in facts.sessions if ok and not any(p and re.search(p, name) for p in _KINDS.values())
+    )
+    for sentence in sentences(normalize(draft)):
+        if _FORWARD.search(sentence):
+            continue
+        for match in _WEEKDAY.finditer(sentence):
+            day = match.group(1)
+            if not _workout_near(sentence, match.start(), match.end(), names):
+                continue
+            if day not in days_any:
+                return [_calendar(f"Places a workout on {day.title()}, but nothing was scheduled that day. Check it.", sentence)]
+            if day not in days_done and not _NOT_DONE.search(sentence):
+                return [_calendar("Describes a missed workout as done. Check it.", sentence)]
+        for match in _COUNTED.finditer(sentence):
+            claimed, kind = _ONE.get(match.group(1)) or int(match.group(1)), match.group(2)
+            pattern = _KINDS[kind]
+            done = sum(1 for _, name, ok in facts.sessions if ok and (not pattern or re.search(pattern, name)))
+            # Workouts whose names fit no kind ("Intervals: 5 x 800m") may be what the draft counts.
+            allowance = uncategorized if pattern else 0
+            if claimed > done + allowance and not _NOT_DONE.search(sentence):
+                return [_calendar("Counts more workouts than the data shows. Check it.", sentence)]
+    return []
+
+
+def _calendar(reason: str, sentence: str) -> Finding:
+    return Finding(rule="other", check="calendar", severity="flag", reason=reason, evidence=sentence)
+
+
 _DIGITS = re.compile(r"(?<![\w.])\d[\d,]*(?:\.\d+)?")
 _TARGET_BEFORE = re.compile(r"\b(?:above|below|toward|towards|to|past|under|of)\s*$", re.I)
 
@@ -371,6 +446,7 @@ CHECKS: tuple[Check, ...] = (
     member_signals,
     grounding,
     activity_values,
+    calendar_claims,
 )
 
 

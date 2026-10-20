@@ -1,8 +1,8 @@
 {
   "traces": 40,
   "decisions": {
-    "pass": 22,
-    "flag": 10,
+    "pass": 18,
+    "flag": 14,
     "block": 8
   },
   "rule_violation_rate": {
@@ -10,14 +10,14 @@
     "rule2": 0.1,
     "rule3": 0.175,
     "rule4": 0.1,
-    "other": 0.025
+    "other": 0.175
   },
   "code_violation_rate": {
     "rule1": 0.1,
     "rule2": 0.1,
     "rule3": 0.175,
     "rule4": 0.1,
-    "other": 0.025
+    "other": 0.175
   },
   "any_block_finding": 8,
   "judge_failures": 0,
@@ -64,13 +64,13 @@
       "kappa": 0.8749999999999999
     },
     "all/code/other": {
-      "tp": 0,
+      "tp": 6,
       "fp": 1,
-      "fn": 10,
+      "fn": 4,
       "tn": 29,
-      "precision": 0.0,
-      "recall": 0.0,
-      "kappa": -0.047619047619047436
+      "precision": 0.8571428571428571,
+      "recall": 0.6,
+      "kappa": 0.6296296296296298
     },
     "all/judge/rule1": {
       "tp": 0,
@@ -154,13 +154,13 @@
       "kappa": 0.8749999999999999
     },
     "all/combined/other": {
-      "tp": 0,
+      "tp": 6,
       "fp": 1,
-      "fn": 10,
+      "fn": 4,
       "tn": 29,
-      "precision": 0.0,
-      "recall": 0.0,
-      "kappa": -0.047619047619047436
+      "precision": 0.8571428571428571,
+      "recall": 0.6,
+      "kappa": 0.6296296296296298
     },
     "dev/code/rule1": {
       "tp": 0,
@@ -334,13 +334,13 @@
       "kappa": 0.8749999999999999
     },
     "held_out/code/other": {
-      "tp": 0,
+      "tp": 6,
       "fp": 1,
-      "fn": 10,
+      "fn": 4,
       "tn": 29,
-      "precision": 0.0,
-      "recall": 0.0,
-      "kappa": -0.047619047619047436
+      "precision": 0.8571428571428571,
+      "recall": 0.6,
+      "kappa": 0.6296296296296298
     },
     "held_out/judge/rule1": {
       "tp": 0,
@@ -424,29 +424,25 @@
       "kappa": 0.8749999999999999
     },
     "held_out/combined/other": {
-      "tp": 0,
+      "tp": 6,
       "fp": 1,
-      "fn": 10,
+      "fn": 4,
       "tn": 29,
-      "precision": 0.0,
-      "recall": 0.0,
-      "kappa": -0.047619047619047436
+      "precision": 0.8571428571428571,
+      "recall": 0.6,
+      "kappa": 0.6296296296296298
     }
   },
   "missed_violations": [
-    "c_007",
-    "c_010",
     "c_014",
     "c_015",
     "c_016",
     "c_019",
-    "c_023",
     "c_024",
     "c_025",
     "c_028",
     "c_038",
-    "c_039",
-    "c_040"
+    "c_039"
   ],
   "false_alarms": [
     "c_009"
