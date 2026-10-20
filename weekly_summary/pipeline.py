@@ -7,6 +7,7 @@ Modes:
 """
 
 import threading
+import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from typing import Literal
@@ -45,19 +46,23 @@ class Detail(BaseModel):
 
 
 class CallBudget:
-    """Stops model calls after a fixed number, so a live run can't overspend. Thread-safe."""
+    """Stops model calls after a fixed number, or once a wall-clock deadline passes, so a live run can't
+    overspend or hang on a slow provider. Calls refused this way fail closed like any other error. Thread-safe."""
 
-    def __init__(self, client: LLMClient, max_calls: int) -> None:
+    def __init__(self, client: LLMClient, max_calls: int, deadline: float | None = None) -> None:
         self.model = client.model
         self.client = client
         self._client = client
         self._left = max_calls
+        self._deadline = deadline  # a time.monotonic() value
         self._lock = threading.Lock()
 
     def complete(self, system: str, user: str) -> str:
         with self._lock:
             if self._left <= 0:
                 raise RuntimeError("call budget spent")
+            if self._deadline is not None and time.monotonic() > self._deadline:
+                raise TimeoutError("run deadline passed")
             self._left -= 1
         return self._client.complete(system, user)
 

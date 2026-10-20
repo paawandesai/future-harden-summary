@@ -245,3 +245,9 @@ def test_calendar_claims_catch_wrong_days_and_counts():
 def test_planned_counts_and_the_word_step_are_not_claims():
     assert "calendar" not in checks(CLEAN.replace("Same plan", "You got two of two sessions in. Same plan"))
     assert "activity_value" not in checks(CLEAN.replace("Same plan", "That 40-minute run is a big step. Same plan"))
+
+
+def test_call_budget_deadline_fails_closed():
+    budget = CallBudget(FakeClient("x"), 10, deadline=0.0)
+    with pytest.raises(TimeoutError):
+        budget.complete("s", "u")

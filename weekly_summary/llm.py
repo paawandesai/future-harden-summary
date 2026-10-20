@@ -35,7 +35,8 @@ class LLMClient(Protocol):
 class AnthropicClient:
     # Haiku 5.5 and Sonnet 5.5 think by default, and thinking counts against max_tokens, so 1024 can cut
     # the answer off. Sampling parameters other than the defaults are rejected by these models.
-    def __init__(self, model: str, max_tokens: int = 8000, timeout: float = 120, max_retries: int = 3) -> None:
+    # A hung call costs up to timeout x (max_retries + 1). Single calls took 2-10 s in the dry run.
+    def __init__(self, model: str, max_tokens: int = 8000, timeout: float = 60, max_retries: int = 3) -> None:
         self.model = model
         self.max_tokens = max_tokens
         self.input_tokens = 0
