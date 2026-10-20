@@ -75,12 +75,13 @@ def process(
     mode: Mode,
     generator_for: Callable[[Trace], LLMClient] | None,
     judge: Judge | None,
+    prompt: str = "v4",
 ) -> Detail:
     first_draft, repaired = None, False
     try:
         if mode == "generate":
             assert generator_for is not None
-            made = draft_summary(trace.input, generator_for(trace))
+            made = draft_summary(trace.input, generator_for(trace), prompt=prompt)
             draft, first_draft, repaired = made.text, made.first_draft, made.repaired
         else:
             draft = trace.output
@@ -118,6 +119,7 @@ def run_pipeline(
     generator_for: Callable[[Trace], LLMClient] | None,
     judge: Judge | None,
     workers: int = 4,
+    prompt: str = "v4",
 ) -> list[Detail]:
     with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
-        return list(pool.map(lambda t: process(t, mode, generator_for, judge), traces))
+        return list(pool.map(lambda t: process(t, mode, generator_for, judge, prompt), traces))
