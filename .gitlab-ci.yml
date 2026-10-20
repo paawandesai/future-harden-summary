@@ -2,8 +2,8 @@
 # this pipeline re-runs every required merge check (lint, typecheck, test, build) so nothing depends on hooks.
 #
 # Runner: w2-ci-runner, Docker executor, unprivileged, local cache only (no shared cache server).
-# Budget per job: 2 vCPU / 2 GB. Concurrency: 2 jobs for this project. The runner does not enforce a CPU
-# limit (nproc reports the host's 4 vCPU inside a job), so worker counts below are capped explicitly.
+# Measured on the runner (2026-10-20): each job container gets cpu.max 3 vCPU and memory.max 3 GiB on a shared
+# 4 vCPU / 8 GB host, but nproc still reports 4. We size for the agreed 2 vCPU / 2 GB budget and cap workers explicitly.
 
 workflow:
   auto_cancel:
@@ -61,6 +61,11 @@ default:
 
 # uv's download cache, one per dependency group, keyed on the lockfile. Each job re-syncs its own .venv
 # from it (well under a second warm) instead of passing a venv between jobs as an artifact.
+# Appended to each job's script: the job container's peak memory (cgroup v2, includes page cache),
+# so every log shows how close the job came to its memory budget.
+.peak-mem: &peak-mem
+  - 'echo "peak memory: $(( $(cat /sys/fs/cgroup/memory.peak 2>/dev/null || echo 0) / 1048576 )) MiB"'
+
 .uv-cache: &uv-cache
   key:
     files: [uv.lock]
@@ -76,6 +81,7 @@ typecheck:
   cache: *uv-cache
   script:
     - uv run --no-default-groups --group typecheck --group test pyright
+    - *peak-mem
 
 test:
   stage: verify
@@ -85,6 +91,7 @@ test:
   # One process: the suite takes ~2 s, so pytest-xdist workers would cost more than they save.
   script:
     - uv run --no-default-groups --group test pytest -q -p no:cacheprovider --junitxml=report.xml
+    - *peak-mem
   artifacts:
     when: always
     expire_in: 1 week
@@ -99,6 +106,7 @@ lint:
   script:
     - uv run --only-group lint ruff check .
     - uv run --only-group lint ruff format --check .
+    - *peak-mem
 
 build:
   stage: verify
@@ -107,6 +115,7 @@ build:
   cache: *uv-cache
   script:
     - uv build
+    - *peak-mem
   artifacts:
     expire_in: 1 day
     paths: [dist/]
@@ -129,3 +138,4 @@ dependency-audit:
   script:
     - uv export --all-groups --no-emit-project --format requirements.txt -o requirements-audit.txt
     - uvx --from pip-audit==2.9.0 pip-audit -r requirements-audit.txt --require-hashes --disable-pip
+    - *peak-mem
