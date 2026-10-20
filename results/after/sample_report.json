@@ -440,5 +440,12 @@
     "t_028",
     "t_037"
   ],
-  "labels_reviewed": 0
+  "rule4_not_blocked": [],
+  "labels_reviewed": 30,
+  "meta": {
+    "evaluated_at": "2026-10-20T22:16:30+00:00",
+    "details_file": "results/after/sample_details.jsonl",
+    "labels_file": "data/after_sample_labels.jsonl",
+    "run": null
+  }
 }

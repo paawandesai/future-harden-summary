@@ -7,6 +7,7 @@ The judge can only add findings. It never clears a code finding, and anything it
 import hashlib
 import json
 import re
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
 
@@ -20,6 +21,9 @@ JUDGE_VERSION = "j1"
 CONFIRM_MODEL = "claude-sonnet-5-5"
 GUIDEBOOK = Path(__file__).resolve().parents[2] / "GUIDEBOOK.md"
 DEFAULT_CACHE = Path(__file__).resolve().parents[2] / "results" / "judge_cache"
+# One line per cached verdict file with its hash, so any change to the cache shows in a small, readable diff,
+# and the gate fails if a file no longer matches.
+MANIFEST = DEFAULT_CACHE.with_name("judge_cache.sha256")
 
 JudgedRule = Literal["1", "2", "3", "other"]
 
@@ -82,7 +86,17 @@ _REASONS: dict[JudgedRule, str] = {
 
 
 def _user_message(week: MemberWeek, draft: str) -> str:
-    return f"<member_week>\n{week.model_dump_json(indent=2)}\n</member_week>\n\n<draft>\n{draft}\n</draft>"
+    # Neither the data nor the draft can close its own delimiter: "<" and ">" are escaped in both.
+    data = week.model_dump_json(indent=2).replace("<", "\\u003c").replace(">", "\\u003e")
+    text = draft.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return f"<member_week>\n{data}\n</member_week>\n\n<draft>\n{text}\n</draft>"
+
+
+def _why(verdict: Verdict) -> str:
+    """The judge's own short explanation, for the coach. Numbers are dropped so no member value repeats."""
+    words = re.sub(r"\d[\d.,:%]*\s*", "", verdict.why).split()[:15]
+    text = " ".join(words).strip(" .")
+    return f" {text[0].upper()}{text[1:]}." if text else ""
 
 
 def _parse(text: str) -> JudgeOutput:
@@ -107,7 +121,7 @@ def to_findings(output: JudgeOutput, draft: str) -> list[Finding]:
     for verdict in output.verdicts:
         if not verdict.violated:
             continue
-        reason = _REASONS[verdict.rule]
+        reason = _REASONS[verdict.rule] + _why(verdict)
         if not _in_draft(verdict.quote, draft):
             # A verdict without a real quote may be invented. Keep it as a flag, marked as unsure.
             reason = reason.replace("Judge:", "Judge (unsure):", 1)
@@ -154,21 +168,66 @@ class Judge:
     def judge(self, week: MemberWeek, draft: str) -> tuple[JudgeOutput | None, list[Finding]]:
         """The parsed verdicts (None on failure) and the findings they add."""
         path = self.cache_dir / f"{self._key(week, draft)}.json" if self.cache_dir else None
-        if path and path.exists():
-            text = path.read_text()
-        else:
-            try:
-                text = self.client.complete(self.system, _user_message(week, draft))
-            except Exception as error:  # any provider failure fails closed
-                return None, [_failure(f"{type(error).__name__}")]
+        cached = _read_cache(path, self.client.model) if path else None
+        if cached is not None:
+            return cached, to_findings(cached, draft)
+        try:
+            text = self.client.complete(self.system, _user_message(week, draft))
+        except Exception as error:  # any provider failure fails closed
+            return None, [_failure(f"{type(error).__name__}")]
         try:
             output = _parse(text)
         except ValueError, ValidationError:
             return None, [_failure("unparseable output")]
         if path:
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(output.model_dump_json())
+            record = {
+                "judge_version": JUDGE_VERSION,
+                "model": self.client.model,
+                "created_at": datetime.now(UTC).isoformat(timespec="seconds"),
+                **output.model_dump(),
+            }
+            path.write_text(json.dumps(record))
         return output, to_findings(output, draft)
+
+
+def _read_cache(path: Path, model: str) -> JudgeOutput | None:
+    """A cached verdict, or None when there is none or it was recorded for another judge version or model.
+    Files from before the cache recorded its version and model have only the verdicts."""
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text())
+        if data.get("judge_version", JUDGE_VERSION) != JUDGE_VERSION or data.get("model", model) != model:
+            return None
+        return _parse(json.dumps({"verdicts": data["verdicts"]}))
+    except ValueError, KeyError, ValidationError:
+        return None
+
+
+def file_hash(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def write_manifest(cache_dir: Path = DEFAULT_CACHE, manifest: Path = MANIFEST) -> int:
+    files = sorted(cache_dir.glob("*.json"))
+    manifest.write_text("".join(f"{file_hash(f)}  {f.name}\n" for f in files))
+    return len(files)
+
+
+def check_manifest(cache_dir: Path = DEFAULT_CACHE, manifest: Path = MANIFEST) -> list[str]:
+    """Cache files that are missing from the manifest, changed since it was written, or listed but gone."""
+    if not manifest.exists():
+        return [f"{manifest.name} is missing"]
+    listed: dict[str, str] = {}
+    for line in manifest.read_text().splitlines():
+        digest, _, name = line.partition("  ")
+        listed[name] = digest
+    present = {f.name: f for f in cache_dir.glob("*.json")}
+    problems = [f"{name}: not in the manifest" for name in sorted(present.keys() - listed.keys())]
+    problems += [f"{name}: listed but missing" for name in sorted(listed.keys() - present.keys())]
+    problems += [f"{n}: changed" for n in sorted(present.keys() & listed.keys()) if file_hash(present[n]) != listed[n]]
+    return problems
 
 
 def _failure(what: str) -> Finding:

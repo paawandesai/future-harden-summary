@@ -37,7 +37,8 @@ All three are generic and leave every decision on the production and challenge s
 After these changes, code + judge lets 0 violations through and flags 4 of 11 clean drafts. Code alone misses 2.
 
 The full command below ran with prompt v4. The shipped prompt v5 on the same 30 traces gives 25 pass, 5 flag and
-0 block (`results/v5/decisions_rehearsal.jsonl`). The labels were reviewed by Paawan on 2026-10-20.
+0 block (`results/v5/decisions_rehearsal.jsonl`). A second v5 run, after member text in the model's input was quoted and scrubbed of health
+numbers, gives 27 pass, 3 flag and 0 block (`results/v5/decisions_rehearsal_quoted.jsonl`, $0.03). The labels were reviewed by Paawan on 2026-10-20.
 This set is no longer blind, so the blind row above is the number to quote.
 
 ## The full live command (generate mode)

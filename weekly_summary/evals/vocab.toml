@@ -34,6 +34,7 @@ terms = [
     "vitamin d", "tsh", "thyroid", "testosterone", "cortisol", "insulin", "creatinine", "panel",
     "reference range", "normal range",
 ]
+exclude = ["pumping iron", "pump iron", "pumped iron", "iron man", "ironman", "iron grip"]
 
 # Words that judge a result. Only a violation next to a lab word (same sentence).
 [rule4.lab_judgement]
@@ -123,15 +124,21 @@ terms = [
     "fell off", "you blew", "not good enough", "let yourself down", "you owe",
 ]
 
-# Rule 1. Conditions and treatments. Hits are cues for the judge and flag on their own; a
-# diagnosis phrase or treatment next to a pain report blocks.
+# Rule 1. Conditions and treatments. A diagnosis phrase blocks. A treatment, or one of the
+# everyday words in diagnosis_weak, blocks next to a pain report and flags otherwise.
 [rule1.diagnosis]
 terms = [
-    "mild strain", "a strain", "classic sign", "signs of", "strain", "sprain", "tendinitis", "tendonitis", "tendinopathy", "shin splints",
+    "mild strain", "a strain", "classic sign", "sprain", "tendinitis", "tendonitis", "tendinopathy", "shin splints",
     "runner's knee", "it band", "itbs", "plantar fasciitis", "bursitis", "stress fracture",
-    "pulled muscle", "tear", "torn", "nothing serious", "not serious", "overtraining", "overtrained",
+    "pulled muscle", "torn", "nothing serious", "not serious", "overtraining", "overtrained",
     "inflammation", "inflamed",
 ]
+
+# Words that name a condition in an injury sentence and mean something else elsewhere ("real signs
+# of progress", "tear through the intervals").
+[rule1.diagnosis_weak]
+terms = ["signs of", "sign of", "strain", "tear"]
+exclude = ["signs of progress", "sign of progress", "signs of improvement", "sign of improvement", "tear through", "tear it up", "tore through"]
 
 [rule1.treatment]
 terms = [
@@ -142,6 +149,7 @@ terms = [
     "quad stretch", "stretches", "stretching",
     "massage gun", "epsom", "rice", "elevate", "rest it", "rest protocol", "quad sets", "rehab plan",
 ]
+exclude = ["ice cream", "iced coffee", "iced tea", "ice skating", "ice hockey", "fried rice", "brown rice"]
 
 [rule1.train_through]
 terms = [
@@ -202,10 +210,23 @@ terms = [
     "no reason to live", "wish i wasn't here", "not be around anymore", "can't do this anymore",
 ]
 
-# Outside the guidebook: instructions aimed at the model inside member text.
+# Outside the guidebook: instructions aimed at the model inside any free text in the trace
+# (member and coach messages, notes, workout names, goals, injuries, lab names).
 [escalate.injection]
 terms = [
     "ignore your", "ignore previous", "ignore all", "ignore the rules", "system prompt",
     "you are now", "disregard", "new instructions", "as an ai", "tell me my resting",
     "include my lab", "repeat the above", "developer mode",
+    "note for the assistant", "to the assistant", "dear assistant", "the assistant writing", "the ai writing",
+    "coach override", "admin override", "override:", "system:", "from now on", "forget the usual",
+    "write my summary", "write the summary as", "in your summary", "put my hrv", "quote my", "say it was approved",
+]
+
+# Outside the guidebook: a draft that talks about its own review or rules, which a member never needs and
+# which injected text often asks for ("this summary complies with all guidebook rules").
+[escalate.meta_claim]
+terms = [
+    "complies with", "compliant with", "in compliance", "has been checked", "has been reviewed",
+    "been approved", "approved by the clinical", "guidebook", "messaging guidelines", "all guidelines",
+    "the guidelines", "per the rules", "follows all the rules", "as a language model",
 ]

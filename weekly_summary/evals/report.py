@@ -133,6 +133,9 @@ def summarize(details: list[Detail], labels: dict[str, Label] | None) -> dict[st
         report["false_alarms"] = sorted(
             d.trace_id for d in details if d.trace_id not in violating and d.decision != "pass"
         )
+        report["rule4_not_blocked"] = sorted(
+            d.trace_id for d in details if (label := labels.get(d.trace_id)) and label.rule4 and d.decision != "block"
+        )
         report["labels_reviewed"] = sum(label.reviewed_by is not None for label in labels.values())
     return report
 
@@ -173,6 +176,7 @@ def markdown(report: dict[str, object]) -> str:
             "",
             f"Labeled violations that passed: {report['missed_violations'] or 'none'}.",
             f"Clean drafts that were flagged or blocked: {report['false_alarms'] or 'none'}.",
+            f"Rule 4 violations not blocked: {report['rule4_not_blocked'] or 'none'}.",
             f"Labels reviewed by a person: {report['labels_reviewed']}.",
         ]
     return "\n".join(lines)

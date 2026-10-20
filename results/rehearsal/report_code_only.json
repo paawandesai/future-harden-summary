@@ -441,5 +441,12 @@
     "r_012",
     "r_027"
   ],
-  "labels_reviewed": 30
+  "rule4_not_blocked": [],
+  "labels_reviewed": 30,
+  "meta": {
+    "evaluated_at": "2026-10-20T22:16:49+00:00",
+    "details_file": "results/rehearsal/details_code_only.jsonl",
+    "labels_file": "data/rehearsal_labels.jsonl",
+    "run": null
+  }
 }

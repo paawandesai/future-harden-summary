@@ -37,12 +37,13 @@ against the challenge set, so a miss there is reported and never patched one cas
 
 | Blind set | Code only: violations passed | Code + judge: violations passed | Code + judge: clean drafts flagged |
 |---|---|---|---|
-| Challenge, 30 violating / 10 clean | 10 (now 9) | **0** | 1 |
+| Challenge, 30 violating / 10 clean | 10 (now 8) | **0** | 1 |
 | Rehearsal, 19 violating / 11 clean | 3 (now 2) | **0** | 5 (now 4) |
 
 The first number in each cell is the blind result. "Now" is after generic fixes, which made those sets partly
-in-sample. The challenge change came from this audit: c_024 quoted the member's weight with no weight word, and
-the exact-weight check now blocks it.
+in-sample. The challenge changes came from the pre-submission audit: c_024 quoted the member's weight with no
+weight word, and the exact-weight check now blocks it. c_040 claimed it "complies with all guidebook rules", and a
+draft that talks about its own review now flags.
 
 Per rule on the challenge set (code + Haiku: caught, false positives, κ): Rule 1 8/8, 2, 0.86. Rule 2 7/7, 0,
 1.00. Rule 3 8/8, 0, 1.00. Rule 4 4/5, 0, 0.87. Other 9/10, 5, 0.65. Haiku's run-to-run κ is 0.79–1.00 on Rules
@@ -87,34 +88,40 @@ are flagged as priority.
 
 1. **Strip in code** what the model must not quote: labs, HR and HRV values (replaced by trend words), and
    weight. Render the week as plain facts: weekday, done or missed, the coach's first name, and a "health issue
-   reported" line.
+   reported" line. Member and coach text is quoted as data, with health numbers removed from it.
 2. **Generate** with a prompt that states the guidebook.
 3. **Run the code checks.** If something fixable fails, make **one repair call** that names the broken rules.
 4. **Decide**, using the code checks plus the judge.
 
 Why not one prompt: Haiku on the old prompt broke a rule in **60 of 60** drafts, and quoted a biomarker or lab in
 every one of them. Prompt wording can't reliably stop a model from quoting data it was given, but removing the
-data can. Why not an agent: the steps are fixed, so an agent would add cost, latency and new ways for member text
+data can. I didn't run the new prompt on raw input, so that argument rests on the old prompt's failure. The repair
+call changes little (blocks fell from 2–3% to under 1%, flags unchanged), so in practice this is one model call
+with code before and after it. Why not an agent: the steps are fixed, so an agent would add cost, latency and new ways for member text
 to steer the output, with nothing for it to decide.
 
 ## 4. Guardrail policy
 
 - **Block** (code only, so it is reproducible). This covers a quoted biomarker or lab mention, weight talk under
   `avoid_weight_talk`, and a weight target. It also covers a diagnosis, a treatment, or training advice about a
-  reported pain, plus a sign-off from someone other than this member's coach. Finally, it covers no draft
-  produced and an unreadable trace. The coach sees why and regenerates or rewrites.
+  reported pain, plus a sign-off from someone other than this member's coach. Finally, it covers an empty
+  draft, no draft produced and an unreadable trace. The coach sees why and regenerates or rewrites.
 - **Flag** (up to three one-line reasons). This covers judge findings, pain without "I'll reach out", guilt, hype,
   length, emoji, bot voice, and a draft that isn't specific. It also covers figures or days the data
-  contradicts, distress or injection in member text, and any judge failure. A judge-only "other" finding stands
+  contradicts, distress in member text, injection in any text field of the trace, a draft that talks about its
+  own review or rules, letters from another alphabet that imitate Latin ones, and any judge failure. Code checks
+  read the draft after Unicode normalization, so full-width digits and look-alike letters can't hide a value. A judge-only "other" finding stands
   only if Sonnet (`claude-sonnet-5-5`) agrees, or if the Sonnet call fails.
 - **Pass:** nothing found.
 
-**Expected flag rate: about 7% on familiar inputs and about 17% on unseen ones, with almost no blocks.**
+**Expected flag rate: about 7% on familiar inputs and 10–17% on unseen ones, with almost no blocks.**
 - **Familiar inputs:** 2 to 6 of 60 drafts per run (44 of 600 overall), across 8 v4 generations (`results/after`,
   `results/before_after`) and 2 v5 generations (`results/v5`), with 0 blocks. These are the production inputs the
   checks' false-positive fixes were tuned on.
-- **Unseen inputs:** the shipped v5 prompt on the 30 rehearsal traces flags 5 (17%) and blocks none
-  (`results/v5/decisions_rehearsal.jsonl`).
+- **Unseen inputs:** the shipped v5 prompt on the 30 rehearsal traces flagged 5 (17%) and blocked none
+  (`results/v5/decisions_rehearsal.jsonl`). A second run, after member text was quoted and scrubbed of health
+  numbers, flagged 3 (10%) and blocked none (`results/v5/decisions_rehearsal_quoted.jsonl`). One run each can't
+  separate that change from run-to-run variance.
 - **What the flags are:** of the 44 flagged drafts, 23 carry a judge Rule 1 finding, usually on how a reported pain
   or illness was handled. 12 carry a judge data-contradiction finding, 5 a calendar mismatch, and the rest are
   code figure checks.
@@ -157,17 +164,18 @@ sample of 30 v4 drafts (labeled blind, reviewed by me) had 1 violation (t_049, R
   - t_038 praises training through a pulled muscle.
   - t_022 says a ride the member cut short was finished.
 - **Missed (1):** t_058 calls a PT visit that already happened "on Wednesday" upcoming.
-- **Flag precision:** blind, 2 of the 7 flags were real, 2 were borderline and 3 were false. Two of the false flags
-  came from generic code gaps, which are now fixed: "your 7-hour goal" read as a sleep figure, and "skipping
-  Tuesday's class" read as a missed workout called done. After the fixes it is 2 real, 2 borderline and 2 false of
-  6. The 2 remaining false flags are judge Rule 1 calls on drafts that acknowledge an issue correctly.
+- **Flag precision:** blind, by the reviewed labels, 2 of the 7 flags were real, 3 were borderline and 2 were
+  false. Fixes for two generic code gaps ("your 7-hour goal" read as a sleep figure, and "skipping Tuesday's
+  class" read as a missed workout called done) removed one false flag. After them it is 2 real, 3 borderline and 1
+  false of 6. The false flag and two of the borderline ones are judge Rule 1 calls on drafts that acknowledge an
+  issue correctly. These post-fix numbers are in-sample, because the fixes came from this sample.
 - **Miss rate:** 1 miss in 23 random passes suggests about 2 subtle misses per 60 drafts, all flag-level "other"
   errors. No draft quoted a biomarker or lab, and Rule 3 held in all 30.
 
 ## 6. Next steps, in priority order
 
 1. Raise flag precision: extend Sonnet confirmation to judge-only Rule 1 findings, the largest flag group and the
-   source of the 2 remaining false flags in the v5 sample. Then track flag rate and precision per coach in
+   source of the remaining false flag in the v5 sample. Then track flag rate and precision per coach in
    production.
 2. Grow the blind sets with real coach edits as labels, and refresh them each quarter so the checks don't
    overfit.
@@ -176,6 +184,7 @@ sample of 30 v4 drafts (labeled blind, reviewed by me) had 1 violation (t_049, R
    catches.
 4. Move Rule 2 judging to Sonnet if more labels confirm Haiku's two production misses (t_008, t_048).
 5. Have a person sign off `weekly_summary/evals/vocab.toml`, which is still marked as a model draft.
+6. Tell members their summaries are drafted with AI and approved by their coach.
 
 ## 7. AI use
 

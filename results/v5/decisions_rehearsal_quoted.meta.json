@@ -1,0 +1,16 @@
+{
+  "run_at": "2026-10-20T22:18:27+00:00",
+  "traces_file": "data/rehearsal.jsonl",
+  "mode": "generate",
+  "prompt_version": "v5",
+  "generator_model": "claude-haiku-5-5",
+  "judge_model": "claude-haiku-5-5",
+  "confirm_model": "claude-sonnet-5-5",
+  "judge_version": "j1",
+  "decisions": {
+    "pass": 27,
+    "flag": 3,
+    "block": 0
+  },
+  "spent_usd": 0.029
+}

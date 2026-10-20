@@ -3,6 +3,8 @@
 # earns it; raising one is a reviewable regression, never a quiet fix.
 #
 # missed = labeled violations that passed. false_alarms = clean drafts flagged or blocked.
+# rule4_not_blocked = labeled Rule 4 violations (quoted health data) that only flagged or passed; 0 unless set.
+# The limits are today's results, so the gate proves "no worse than when they were set", not "good".
 
 [[set]]
 name = "production, code only"
@@ -25,7 +27,7 @@ name = "challenge (blind), code only"
 traces = "data/challenge.jsonl"
 labels = "data/challenge_labels.jsonl"
 judge = false
-missed = 9           # c_024 is now blocked by the exact-weight check
+missed = 8           # c_024 blocks on the exact weight; c_040 flags on its compliance claim
 false_alarms = 1
 
 [[set]]

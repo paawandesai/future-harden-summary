@@ -64,11 +64,20 @@ def render(details: list[Detail], traces: dict[str, Trace], title: str = "Weekly
             for f in d.findings
         )
         draft = _highlight(d.draft, [f.evidence for f in d.findings]) if d.draft else "<em>No draft.</em>"
+        # The model rewrote its first draft once; the coach sees why and what it replaced.
+        rewrite = (
+            "<details><summary>Rewritten once because: "
+            + html.escape(" ".join(d.repair_reasons) or "a code check failed")
+            + f'</summary><div class="draft">{html.escape(d.first_draft or "")}</div></details>'
+            if d.repaired
+            else ""
+        )
         cards.append(
             f'<article class="{d.decision}"><header><span class="badge">{d.decision}</span>'
             f'<span class="who">{html.escape(who)}</span><span class="id">{html.escape(d.trace_id)}</span></header>'
             + (f"<ul>{reasons}</ul>" if reasons else "")
             + f'<div class="draft">{draft}</div>'
+            + rewrite
             + (f"<details><summary>All findings</summary><ul>{findings}</ul></details>" if findings else "")
             + "</article>"
         )

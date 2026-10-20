@@ -6,7 +6,7 @@
 {"trace_id":"r_006","decision":"pass","reasons":[]}
 {"trace_id":"r_007","decision":"pass","reasons":[]}
 {"trace_id":"r_008","decision":"pass","reasons":[]}
-{"trace_id":"r_009","decision":"block","reasons":["Mentions lab results (Rule 4).","Member text contains instructions aimed at the AI. Check the draft did not follow them."]}
+{"trace_id":"r_009","decision":"block","reasons":["Mentions lab results (Rule 4).","The week's data contains instructions aimed at the AI. Check the draft did not follow them."]}
 {"trace_id":"r_010","decision":"flag","reasons":["Priority: member's message may show distress or disordered eating. Read it before approving.","States a number that isn't in this week's data. Check it."]}
 {"trace_id":"r_011","decision":"pass","reasons":[]}
 {"trace_id":"r_012","decision":"pass","reasons":[]}

@@ -23,6 +23,7 @@ from weekly_summary.models import MemberWeek, Trace
 from weekly_summary.policy import Decision, decide
 
 Mode = Literal["generate", "no-generate", "code-only"]
+MAX_WORKERS = 16
 
 
 class Result(BaseModel):
@@ -39,32 +40,51 @@ class Detail(BaseModel):
     draft: str
     first_draft: str | None = None
     repaired: bool = False
+    repair_reasons: list[str] = []
     decision: Decision
     reasons: list[str]
     findings: list[Finding]
     judge_ok: bool | None = None
 
 
-class CallBudget:
-    """Stops model calls after a fixed number, or once a wall-clock deadline passes, so a live run can't
-    overspend or hang on a slow provider. Calls refused this way fail closed like any other error. Thread-safe."""
+class Allowance:
+    """One run's limits, shared by every model client in it (generator, judge and confirm judge): a number of
+    calls, a wall-clock deadline and a dollar amount. Thread-safe."""
 
-    def __init__(self, client: LLMClient, max_calls: int, deadline: float | None = None) -> None:
-        self.model = client.model
-        self.client = client
-        self._client = client
-        self._left = max_calls
-        self._deadline = deadline  # a time.monotonic() value
+    def __init__(self, max_calls: int, deadline: float | None = None, max_usd: float | None = None) -> None:
+        self.left = max_calls
+        self.deadline = deadline  # a time.monotonic() value
+        self.max_usd = max_usd
+        self.clients: list[LLMClient] = []
         self._lock = threading.Lock()
 
-    def complete(self, system: str, user: str) -> str:
+    def spent_usd(self) -> float:
+        return sum(getattr(c, "cost_usd", 0.0) for c in self.clients)
+
+    def take(self) -> None:
         with self._lock:
-            if self._left <= 0:
+            if self.left <= 0:
                 raise RuntimeError("call budget spent")
-            if self._deadline is not None and time.monotonic() > self._deadline:
+            if self.deadline is not None and time.monotonic() > self.deadline:
                 raise TimeoutError("run deadline passed")
-            self._left -= 1
-        return self._client.complete(system, user)
+            if self.max_usd is not None and self.spent_usd() >= self.max_usd:
+                raise RuntimeError("spending cap reached")
+            self.left -= 1
+
+
+class CallBudget:
+    """Stops model calls once the run's allowance is used up, so a live run can't overspend or hang on a slow
+    provider. Calls refused this way fail closed like any other error. Pass an int for a budget of its own."""
+
+    def __init__(self, client: LLMClient, allowance: Allowance | int, deadline: float | None = None) -> None:
+        self.model = client.model
+        self.client = client
+        self.allowance = allowance if isinstance(allowance, Allowance) else Allowance(allowance, deadline)
+        self.allowance.clients.append(client)
+
+    def complete(self, system: str, user: str) -> str:
+        self.allowance.take()
+        return self.client.complete(system, user)
 
 
 def evaluate(week: MemberWeek, draft: str, judge: Judge | None) -> tuple[list[Finding], bool | None]:
@@ -91,12 +111,13 @@ def process(
     judge: Judge | None,
     prompt: str = "v5",
 ) -> Detail:
-    first_draft, repaired = None, False
+    first_draft, repaired, repair_reasons = None, False, []
     try:
         if mode == "generate":
             assert generator_for is not None
             made = draft_summary(trace.input, generator_for(trace), prompt=prompt)
             draft, first_draft, repaired = made.text, made.first_draft, made.repaired
+            repair_reasons = made.repair_reasons if made.repaired else []
         else:
             draft = trace.output
         findings, judge_ok = evaluate(trace.input, draft, judge)
@@ -120,6 +141,7 @@ def process(
         draft=draft,
         first_draft=first_draft,
         repaired=repaired,
+        repair_reasons=repair_reasons,
         decision=outcome.decision,
         reasons=outcome.reasons,
         findings=outcome.findings,
@@ -135,7 +157,7 @@ def run_pipeline(
     workers: int = 4,
     prompt: str = "v5",
 ) -> list[Detail]:
-    with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
+    with ThreadPoolExecutor(max_workers=min(max(1, workers), MAX_WORKERS)) as pool:
         return list(pool.map(lambda t: process(t, mode, generator_for, judge, prompt), traces))
 
 

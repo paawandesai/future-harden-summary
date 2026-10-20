@@ -240,7 +240,8 @@ def test_pipeline_writes_one_line_per_trace_in_the_required_shape(tmp_path, caps
 
     rows = [json.loads(line) for line in out.read_text().splitlines()]
     assert [set(r) for r in rows] == [{"trace_id", "decision", "reasons"}] * 3
-    assert [(r["trace_id"], r["decision"]) for r in rows] == [("t_0", "pass"), ("t_1", "block"), ("t_2", "flag")]
+    # An empty draft blocks: there is nothing a coach could approve.
+    assert [(r["trace_id"], r["decision"]) for r in rows] == [("t_0", "pass"), ("t_1", "block"), ("t_2", "block")]
     assert rows[1]["reasons"] == ["Quotes a resting heart rate value (Rule 4)."]
     assert all(isinstance(reason, str) for r in rows for reason in r["reasons"])
 
@@ -334,7 +335,7 @@ def test_unreadable_lines_still_get_a_decision_in_order(tmp_path):
         ("t_0", "pass"),
         ("t_1", "block"),
         ("line 3", "block"),
-        ("t_3", "flag"),
+        ("t_3", "block"),
     ]
 
 
@@ -362,7 +363,7 @@ def test_gate_fails_when_a_set_gets_more_wrong_than_allowed(tmp_path):
         "judge = false\nmissed = 0\nfalse_alarms = 0\n"
     )
     ok, lines = run_gate(strict)
-    assert not ok and lines[0].startswith("FAIL")
+    assert not ok and lines[0].startswith("ok") and lines[1].startswith("FAIL")
 
 
 def test_view_escapes_drafts_and_marks_evidence():

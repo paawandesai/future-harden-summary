@@ -136,6 +136,8 @@ eval-gate:
           - "data/**"
           - "labels/**"
           - "results/judge_cache/**"
+          - results/judge_cache.sha256
+          - GUIDEBOOK.md
           - pyproject.toml
           - uv.lock
           - .gitlab-ci.yml

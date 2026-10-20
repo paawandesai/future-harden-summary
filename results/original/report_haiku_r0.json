@@ -442,5 +442,12 @@
     "t_051",
     "t_052"
   ],
-  "labels_reviewed": 60
+  "rule4_not_blocked": [],
+  "labels_reviewed": 60,
+  "meta": {
+    "evaluated_at": "2026-10-20T22:16:40+00:00",
+    "details_file": "results/original/details_haiku_r0.jsonl",
+    "labels_file": "labels/labels.jsonl",
+    "run": null
+  }
 }

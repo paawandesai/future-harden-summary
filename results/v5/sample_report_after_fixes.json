@@ -442,5 +442,12 @@
     "t_050",
     "t_056"
   ],
-  "labels_reviewed": 0
+  "rule4_not_blocked": [],
+  "labels_reviewed": 30,
+  "meta": {
+    "evaluated_at": "2026-10-20T22:16:55+00:00",
+    "details_file": "results/v5/sample_details_after_fixes.jsonl",
+    "labels_file": "data/v5_sample_labels.jsonl",
+    "run": null
+  }
 }

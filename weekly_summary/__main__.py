@@ -14,7 +14,7 @@ from weekly_summary.evals.report import compare, compare_markdown, load_details,
 from weekly_summary.generate import generate_summary
 from weekly_summary.llm import DEFAULT_MODELS, LLMClient, make_client
 from weekly_summary.models import Trace
-from weekly_summary.pipeline import CallBudget, Mode, Result, run_pipeline, unreadable_detail
+from weekly_summary.pipeline import Allowance, CallBudget, Detail, Mode, Result, run_pipeline, unreadable_detail
 from weekly_summary.prompt import PROMPT_VERSION
 
 DEFAULT_LABELS = DEFAULT_TRACES.parent.parent / "labels" / "labels.jsonl"
@@ -58,10 +58,9 @@ def _run(traces: list[Trace], client_for: Callable[[Trace], LLMClient], out: Pat
 
 
 def _judge(
-    budget: int,
+    budget: Allowance,
     repeat: int = 0,
     cache_dir: Path | None = DEFAULT_CACHE,
-    deadline: float | None = None,
     confirm_model: str | None = None,
 ) -> Judge:
     provider = os.environ.get("JUDGE_PROVIDER", "anthropic")
@@ -71,25 +70,49 @@ def _judge(
         confirm = make_client(provider, confirm_model, []) if confirm_model else None
     except ValueError as e:
         sys.exit(str(e))
-    second = Judge(CallBudget(confirm, budget, deadline), cache_dir=cache_dir) if confirm else None
-    return Judge(CallBudget(client, budget, deadline), cache_dir=cache_dir, repeat=repeat, confirm=second)
+    second = Judge(CallBudget(confirm, budget), cache_dir=cache_dir) if confirm else None
+    return Judge(CallBudget(client, budget), cache_dir=cache_dir, repeat=repeat, confirm=second)
 
 
-def _spend(*budgets: CallBudget) -> str:
-    total = sum(getattr(b.client, "cost_usd", 0.0) for b in budgets)
-    return f"${total:.4f}"
+def meta_path(path: Path) -> Path:
+    return path.with_name(path.stem + ".meta.json")
+
+
+def _write_meta(
+    args: argparse.Namespace,
+    mode: Mode,
+    judge: Judge | None,
+    generator: str | None,
+    details: list[Detail],
+    spent: float,
+) -> None:
+    """What produced a run, next to its decisions and details files: models, prompt and judge versions, mode, time."""
+    meta = {
+        "run_at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "traces_file": str(args.traces_path or args.traces),
+        "mode": mode,
+        "prompt_version": args.prompt if mode == "generate" else None,
+        "generator_model": generator,
+        "judge_model": judge.client.model if judge else None,
+        "confirm_model": judge.confirm.client.model if judge and judge.confirm else None,
+        "judge_version": JUDGE_VERSION if judge else None,
+        "decisions": {k: sum(d.decision == k for d in details) for k in ("pass", "flag", "block")},
+        "spent_usd": round(spent, 4),
+    }
+    for path in (args.out, args.details):
+        if path:
+            meta_path(path).write_text(json.dumps(meta, indent=2) + "\n")
 
 
 def _pipeline(args: argparse.Namespace, items: list[Trace | tuple[str, str]]) -> None:
     traces = [item for item in items if isinstance(item, Trace)]
     mode: Mode = "code-only" if args.code_only else "no-generate" if args.no_generate else "generate"
     deadline = time.monotonic() + args.deadline if args.deadline else None
+    allowance = Allowance(args.max_calls, deadline, args.max_usd)
     confirm_model = None if args.confirm_model == "none" else args.confirm_model
-    judge = (
-        None
-        if mode == "code-only"
-        else _judge(args.max_calls, args.judge_repeat, args.judge_cache, deadline, confirm_model)
-    )
+    if os.environ.get("JUDGE_PROVIDER", "anthropic") != "anthropic" and args.confirm_model == CONFIRM_MODEL:
+        confirm_model = None  # the default confirm model is an Anthropic model; name one for another provider
+    judge = None if mode == "code-only" else _judge(allowance, args.judge_repeat, args.judge_cache, confirm_model)
     generator_for: Callable[[Trace], LLMClient] | None = None
     budgets: dict[int, CallBudget] = {}
     if mode == "generate":
@@ -98,7 +121,9 @@ def _pipeline(args: argparse.Namespace, items: list[Trace | tuple[str, str]]) ->
         def budgeted(trace: Trace) -> LLMClient:
             client = client_for(trace)
             # One budget per client; replay clients are made per trace and cost nothing.
-            return budgets.setdefault(id(client), CallBudget(client, args.max_calls, deadline))
+            if id(client) not in budgets:
+                budgets[id(client)] = CallBudget(client, allowance)
+            return budgets[id(client)]
 
         generator_for = budgeted
 
@@ -118,11 +143,11 @@ def _pipeline(args: argparse.Namespace, items: list[Trace | tuple[str, str]]) ->
         args.html.parent.mkdir(parents=True, exist_ok=True)
         args.html.write_text(view.render(details, {t.trace_id: t for t in traces}))
     counts = {k: sum(d.decision == k for d in details) for k in ("pass", "flag", "block")}
-    judges = [j for j in (judge, judge.confirm if judge else None) if j is not None]
-    spent = [*budgets.values(), *(j.client for j in judges if isinstance(j.client, CallBudget))]
+    generator = next((b.model for b in budgets.values()), None)
+    _write_meta(args, mode, judge, generator, details, allowance.spent_usd())
     print(
         f"{args.out}: {counts} (prompt {args.prompt if mode == 'generate' else '-'}, judge {JUDGE_VERSION} {judge.client.model if judge else '-'}, "
-        f"mode {mode}, spent {_spend(*spent)})",
+        f"mode {mode}, spent ${allowance.spent_usd():.4f})",
         file=sys.stderr,
     )
 
@@ -150,8 +175,13 @@ def main(argv: list[str] | None = None) -> None:
     skip = pipeline.add_mutually_exclusive_group()
     skip.add_argument("--no-generate", action="store_true", help="decide the drafts already in the traces file")
     skip.add_argument("--code-only", action="store_true", help="like --no-generate, without the LLM judge")
-    pipeline.add_argument("--workers", type=int, default=4)
-    pipeline.add_argument("--max-calls", type=int, default=500, help="stop calling a model after this many calls")
+    pipeline.add_argument("--workers", type=int, default=4, help="parallel traces, at most 16")
+    pipeline.add_argument(
+        "--max-calls", type=int, default=500, help="stop model calls after this many, across generator and judges"
+    )
+    pipeline.add_argument(
+        "--max-usd", type=float, default=5.0, help="stop model calls once the run has spent this many dollars"
+    )
     pipeline.add_argument(
         "--deadline", type=float, help="seconds; after this no new model calls start, and the rest fail closed"
     )
@@ -178,6 +208,9 @@ def main(argv: list[str] | None = None) -> None:
     page.add_argument("--out", type=Path, default=Path("review.html"))
 
     commands.add_parser("gate", help="fail if the frozen labeled sets get more wrong than evals/gate.toml allows")
+    commands.add_parser(
+        "cache-manifest", help="rewrite results/judge_cache.sha256 after adding judge verdicts on purpose"
+    )
 
     comp = commands.add_parser("compare", help="two runs on the same traces: what got better or worse")
     comp.add_argument("before", type=Path, help="details file of the baseline run")
@@ -211,6 +244,11 @@ def main(argv: list[str] | None = None) -> None:
         ok, lines = run_gate()
         print("\n".join(lines))
         sys.exit(0 if ok else 1)
+    if args.command == "cache-manifest":
+        from weekly_summary.evals.judge import write_manifest
+
+        print(f"{write_manifest()} cache files listed in results/judge_cache.sha256")
+        return
     if args.command == "compare":
         labels = load_labels(args.labels) if args.labels and args.labels.exists() else None
         result = compare(load_details(args.before), load_details(args.after), labels)
@@ -222,6 +260,13 @@ def main(argv: list[str] | None = None) -> None:
     if args.command == "evaluate":
         labels = load_labels(args.labels) if args.labels and args.labels.exists() else None
         report = summarize(load_details(args.details), labels)
+        run = meta_path(args.details)
+        report["meta"] = {
+            "evaluated_at": datetime.now(UTC).isoformat(timespec="seconds"),
+            "details_file": str(args.details),
+            "labels_file": str(args.labels) if labels else None,
+            "run": json.loads(run.read_text()) if run.exists() else None,
+        }
         if args.out:
             args.out.parent.mkdir(parents=True, exist_ok=True)
             args.out.write_text(json.dumps(report, indent=2) + "\n")

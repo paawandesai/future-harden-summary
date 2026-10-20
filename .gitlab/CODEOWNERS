@@ -1,0 +1,5 @@
+# Changes to recorded judge verdicts decide what the eval gate replays, so they need an owner review.
+[Eval cache]
+/results/judge_cache/ @paawandesai
+/results/judge_cache.sha256 @paawandesai
+/weekly_summary/evals/gate.toml @paawandesai

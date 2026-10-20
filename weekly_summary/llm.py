@@ -81,7 +81,10 @@ class OpenAIClient:
             ],
             max_completion_tokens=self.max_tokens,
         )
-        return response.choices[0].message.content or ""
+        choice = response.choices[0]
+        if choice.finish_reason == "length":
+            raise RuntimeError("model output hit max_completion_tokens")
+        return choice.message.content or ""
 
 
 class ReplayClient:

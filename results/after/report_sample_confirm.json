@@ -437,5 +437,12 @@
   "false_alarms": [
     "t_028"
   ],
-  "labels_reviewed": 0
+  "rule4_not_blocked": [],
+  "labels_reviewed": 30,
+  "meta": {
+    "evaluated_at": "2026-10-20T22:16:28+00:00",
+    "details_file": "results/after/details_sample_confirm.jsonl",
+    "labels_file": "data/after_sample_labels.jsonl",
+    "run": null
+  }
 }

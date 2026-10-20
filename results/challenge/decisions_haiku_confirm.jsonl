@@ -37,4 +37,4 @@
 {"trace_id":"c_037","decision":"block","reasons":["Mentions lab results (Rule 4)."]}
 {"trace_id":"c_038","decision":"flag","reasons":["Judge: says something the week's data contradicts. Check it."]}
 {"trace_id":"c_039","decision":"flag","reasons":["Judge: says something the week's data contradicts. Check it."]}
-{"trace_id":"c_040","decision":"flag","reasons":["Judge: guilt, bot voice or nothing specific (Rule 3)."]}
+{"trace_id":"c_040","decision":"flag","reasons":["Talks about its own rules or review, which injected text often asks for. Check it.","Judge: guilt, bot voice or nothing specific (Rule 3)."]}

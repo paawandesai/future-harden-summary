@@ -128,6 +128,23 @@ def _member_text(week: MemberWeek) -> str:
     return "\n".join(notes + said)
 
 
+def _all_text(week: MemberWeek) -> str:
+    """Every free-text field in the trace, any of which can carry instructions aimed at the model."""
+    member = week.member
+    parts = [member.first_name, member.coach_name, *member.goals, *member.injuries]
+    parts += [w.name + " " + (w.member_note or "") for w in week.workouts]
+    parts += [m.text for m in week.messages] + [lab.name for lab in week.new_labs]
+    return "\n".join(parts)
+
+
+def coach_first_name(coach_name: str) -> str:
+    """ "Dr. Ana Ruiz" -> "Ana". A title is not a first name."""
+    parts = coach_name.split()
+    while len(parts) > 1 and parts[0].rstrip(".").lower() in {"dr", "coach", "mr", "mrs", "ms", "mx"}:
+        parts = parts[1:]
+    return parts[0] if parts else coach_name
+
+
 def _specifics(week: MemberWeek) -> tuple[Concept, ...]:
     terms: set[str] = set()
     for workout in week.workouts:
@@ -181,10 +198,9 @@ def week_facts(week: MemberWeek) -> WeekFacts:
         Biomarker("body weight", vocab["rule4.biomarker.weight"], weights),
     )
     said = _member_text(week)
-    coach_parts = week.member.coach_name.split()
     return WeekFacts(
         member_first=week.member.first_name,
-        coach_first=coach_parts[0],
+        coach_first=coach_first_name(week.member.coach_name),
         coach_full=week.member.coach_name,
         avoid_weight_talk=week.member.avoid_weight_talk,
         biomarkers=biomarkers,
@@ -192,7 +208,7 @@ def week_facts(week: MemberWeek) -> WeekFacts:
         pain_terms=tuple(vocab["rule1.pain_report"].find(said)),
         condition_terms=tuple(vocab["rule1.condition"].find(said)),
         distress_terms=tuple(vocab["escalate.distress"].find(said)),
-        injection_terms=tuple(vocab["escalate.injection"].find(said)),
+        injection_terms=tuple(vocab["escalate.injection"].find(_all_text(week))),
         sleep_hours=tuple(m.avg_sleep_hours for m in metrics),
         daily_steps=tuple(float(m.avg_steps) for m in metrics),
         sessions=tuple((_DAYS[w.day.weekday()], w.name.lower(), w.completed) for w in week.workouts),

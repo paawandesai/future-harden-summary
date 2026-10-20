@@ -10,14 +10,14 @@
     "rule2": 0.175,
     "rule3": 0.225,
     "rule4": 0.125,
-    "other": 0.25
+    "other": 0.275
   },
   "code_violation_rate": {
     "rule1": 0.1,
     "rule2": 0.1,
     "rule3": 0.175,
     "rule4": 0.125,
-    "other": 0.15
+    "other": 0.175
   },
   "any_block_finding": 9,
   "judge_failures": 0,
@@ -64,13 +64,13 @@
       "kappa": 1.0
     },
     "all/code/other": {
-      "tp": 5,
+      "tp": 6,
       "fp": 1,
-      "fn": 5,
+      "fn": 4,
       "tn": 29,
-      "precision": 0.8333333333333334,
-      "recall": 0.5,
-      "kappa": 0.5384615384615384
+      "precision": 0.8571428571428571,
+      "recall": 0.6,
+      "kappa": 0.6296296296296298
     },
     "all/judge/rule1": {
       "tp": 8,
@@ -154,13 +154,13 @@
       "kappa": 1.0
     },
     "all/combined/other": {
-      "tp": 8,
+      "tp": 9,
       "fp": 2,
-      "fn": 2,
+      "fn": 1,
       "tn": 28,
-      "precision": 0.8,
-      "recall": 0.8,
-      "kappa": 0.7333333333333334
+      "precision": 0.8181818181818182,
+      "recall": 0.9,
+      "kappa": 0.806451612903226
     },
     "dev/code/rule1": {
       "tp": 0,
@@ -334,13 +334,13 @@
       "kappa": 1.0
     },
     "held_out/code/other": {
-      "tp": 5,
+      "tp": 6,
       "fp": 1,
-      "fn": 5,
+      "fn": 4,
       "tn": 29,
-      "precision": 0.8333333333333334,
-      "recall": 0.5,
-      "kappa": 0.5384615384615384
+      "precision": 0.8571428571428571,
+      "recall": 0.6,
+      "kappa": 0.6296296296296298
     },
     "held_out/judge/rule1": {
       "tp": 8,
@@ -424,18 +424,25 @@
       "kappa": 1.0
     },
     "held_out/combined/other": {
-      "tp": 8,
+      "tp": 9,
       "fp": 2,
-      "fn": 2,
+      "fn": 1,
       "tn": 28,
-      "precision": 0.8,
-      "recall": 0.8,
-      "kappa": 0.7333333333333334
+      "precision": 0.8181818181818182,
+      "recall": 0.9,
+      "kappa": 0.806451612903226
     }
   },
   "missed_violations": [],
   "false_alarms": [
     "c_009"
   ],
-  "labels_reviewed": 40
+  "rule4_not_blocked": [],
+  "labels_reviewed": 40,
+  "meta": {
+    "evaluated_at": "2026-10-20T22:16:34+00:00",
+    "details_file": "results/challenge/details_haiku_confirm.jsonl",
+    "labels_file": "data/challenge_labels.jsonl",
+    "run": null
+  }
 }

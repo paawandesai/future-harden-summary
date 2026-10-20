@@ -1,4 +1,9 @@
-from weekly_summary.evals.facts import week_facts
+import json
+import re
+
+from weekly_summary.evals.checks import sentences
+from weekly_summary.evals.facts import coach_first_name, week_facts
+from weekly_summary.evals.vocab import load_vocab, phrase
 from weekly_summary.models import MemberWeek, Metrics
 
 PROMPT_VERSION = "v5"
@@ -64,21 +69,53 @@ def _recovery(metrics: Metrics, prior: Metrics | None) -> str:
     return f"resting heart rate {hr}; HRV {hrv}"
 
 
+def _name(text: str) -> str:
+    """A name or label on one line, with nothing that could open a tag or start a new line of the prompt."""
+    return re.sub(r"[<>\r\n]+", " ", text).strip()
+
+
+def _scrub(text: str, week: MemberWeek, context: str = "") -> str:
+    """Free text with the numbers removed wherever they could be health data: next to a heart rate, HRV, lab or
+    body-weight word (a load on a lift stays; `context` is the workout a note is about), and this member's exact
+    body weight anywhere."""
+    vocab = load_vocab()
+    health = [vocab["rule4.biomarker.resting_hr"], vocab["rule4.biomarker.hrv"], vocab["rule4.lab"]]
+    health += [phrase(lab.name.lower()) for lab in week.new_labs]
+    weight, lift = vocab["rule4.biomarker.weight"], vocab["rule2.lift"]
+    out = []
+    for sentence in sentences(text):
+        if any(c.hits(sentence) for c in health) or (weight.hits(sentence) and not lift.hits(sentence + " " + context)):
+            sentence = re.sub(r"(?<![\w.])\d[\d,.:]*\w*", "[number removed]", sentence)
+        out.append(sentence)
+    scrubbed = " ".join(out)
+    for value in (m.weight_lbs for m in (week.metrics, week.prior_week_metrics) if m and m.weight_lbs):
+        scrubbed = re.sub(rf"(?<![\d.]){re.escape(f'{value:g}')}(?![\d]|\.\d)", "[number removed]", scrubbed)
+    return scrubbed
+
+
+def _quoted(text: str, week: MemberWeek, context: str = "") -> str:
+    # JSON string quoting: the text can't close its own quotes or start a new line of the prompt.
+    return json.dumps(_scrub(text, week, context), ensure_ascii=False)
+
+
 def render_user_message(week: MemberWeek) -> str:
-    """The facts the model may use. Labs, biomarker values and body weight are left out on purpose."""
+    """The facts the model may use. Labs, biomarker values and body weight are left out on purpose, and text the
+    member or coach wrote is quoted and scrubbed of health numbers."""
     member, metrics, prior = week.member, week.metrics, week.prior_week_metrics
+    goals = "; ".join(_quoted(g, week) for g in member.goals)
     lines = [
-        f"Member: {member.first_name} (id {member.id})",
-        f"Your first name (sign off with it): {member.coach_name.split()[0]}",
+        f"Member: {_name(member.first_name)} (id {_name(member.id)})",
+        f"Your first name (sign off with it): {_name(coach_first_name(member.coach_name))}",
         f"Week of {week.week_start.isoformat()}",
-        f"Member's goals: {'; '.join(member.goals) or 'none listed'}",
+        f"Member's goals, in their words: {goals or 'none listed'}",
         "",
         "Workouts:",
     ]
     for workout in week.workouts:
         status = "done" if workout.completed else "MISSED (did not happen)"
-        note = f' Member note: "{workout.member_note}"' if workout.member_note else ""
-        lines.append(f"- {_DAYS[workout.day.weekday()]}: {workout.name}, {workout.duration_min} min, {status}.{note}")
+        note = f" Member note: {_quoted(workout.member_note, week, workout.name)}" if workout.member_note else ""
+        name = _name(_scrub(workout.name, week))
+        lines.append(f"- {_DAYS[workout.day.weekday()]}: {name}, {workout.duration_min} min, {status}.{note}")
     done = sum(w.completed for w in week.workouts)
     lines.append(f"Completed {done} of {len(week.workouts)} planned workouts.")
     lines += [
@@ -90,7 +127,7 @@ def render_user_message(week: MemberWeek) -> str:
         "",
         "Messages this week:",
     ]
-    lines += [f'- {m.sender}: "{m.text}"' for m in week.messages] or ["- none"]
+    lines += [f"- {m.sender}: {_quoted(m.text, week)}" for m in week.messages] or ["- none"]
     facts = week_facts(week)
     if facts.pain_terms or facts.condition_terms or facts.distress_terms:
         lines += [
@@ -99,7 +136,8 @@ def render_user_message(week: MemberWeek) -> str:
             "reach out about it, and give no other advice about it.",
         ]
     if member.injuries:
-        lines += ["", f"Injury history (coach's records, not this week's news): {'; '.join(member.injuries)}"]
+        history = "; ".join(_quoted(i, week) for i in member.injuries)
+        lines += ["", f"Injury history (coach's records, not this week's news): {history}"]
     return "\n".join(lines)
 
 

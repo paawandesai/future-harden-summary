@@ -34,7 +34,7 @@ def test_openai_client_call_matches_installed_sdk(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "test")
     client = OpenAIClient("gpt-5.5")
     message = SimpleNamespace(content="Hi Maya. Jordan")
-    recorder = Recorder(SimpleNamespace(choices=[SimpleNamespace(message=message)]))
+    recorder = Recorder(SimpleNamespace(choices=[SimpleNamespace(message=message, finish_reason="stop")]))
     monkeypatch.setattr(client, "_client", SimpleNamespace(chat=SimpleNamespace(completions=recorder)))
 
     assert client.complete("system", "user") == "Hi Maya. Jordan"

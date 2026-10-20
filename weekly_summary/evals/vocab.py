@@ -2,6 +2,7 @@
 
 import re
 import tomllib
+import unicodedata
 from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
@@ -10,9 +11,27 @@ VOCAB_PATH = Path(__file__).with_name("vocab.toml")
 
 _QUOTES = str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"', "–": "-", "—": "-"})
 
+# Cyrillic and Greek letters that look like Latin ones. "НRV" or "lеaner" written with them would slip past
+# every vocabulary match, so they are read as the Latin letter they imitate.
+_LOOKALIKES = str.maketrans(
+    "АВСЕНІЈКМОРЅТХУаеіјорсѕухԁԛԝΑΒΕΗΙΚΜΝΟΡΤΥΧΖοαικνρτυχ",
+    "ABCEHIJKMOPSTXYaeijopcsyxdqwABEHIKMNOPTYXZoaiknptux",
+)
+_OTHER_SCRIPT = re.compile(r"[\u0370-\u03ff\u0400-\u04ff\u0500-\u052f]")
+
+
+def canonical(text: str) -> str:
+    """Full-width digits and letters, ligatures and look-alike letters read as plain ASCII where they can."""
+    return unicodedata.normalize("NFKC", text).translate(_LOOKALIKES)
+
+
+def mixed_script_words(text: str) -> list[str]:
+    """Words that mix Latin letters with Cyrillic or Greek ones, which no real word does."""
+    return [w for w in re.findall(r"\w+", text) if _OTHER_SCRIPT.search(w) and re.search(r"[A-Za-z]", w)]
+
 
 def normalize(text: str) -> str:
-    return text.translate(_QUOTES).lower()
+    return canonical(text).translate(_QUOTES).lower()
 
 
 def _pattern(term: str) -> re.Pattern[str]:
