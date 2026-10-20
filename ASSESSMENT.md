@@ -79,7 +79,7 @@ In the live session, we run your command on traces that you have not seen. Build
 
 ## What to submit
 
-A GitHub repo (private is fine) with your code and `WRITEUP.md`. The write-up covers:
+A GitLab repo (private is fine) with your code and `WRITEUP.md`. The write-up covers:
 
 - **Eval design.** Each check, what it measures, and why it is code or a model. How you measured the accuracy of any LLM judge.
 - **Findings.** What fails, how often, and the cause. Include anything outside the guidebook.
