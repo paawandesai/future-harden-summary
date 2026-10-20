@@ -2,7 +2,8 @@
 # this pipeline re-runs every required merge check (lint, typecheck, test, build) so nothing depends on hooks.
 #
 # Runner: w2-ci-runner, Docker executor, unprivileged, local cache only (no shared cache server).
-# Budget per job: 2 vCPU / 2 GB. Concurrency: 2 jobs for this project.
+# Budget per job: 2 vCPU / 2 GB. Concurrency: 2 jobs for this project. The runner does not enforce a CPU
+# limit (nproc reports the host's 4 vCPU inside a job), so worker counts below are capped explicitly.
 
 workflow:
   auto_cancel:
