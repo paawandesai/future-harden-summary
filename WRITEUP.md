@@ -1,6 +1,7 @@
 # Weekly summary: evals, fixes and guardrails
 
-For the engineer taking over this feature. Run everything with one command (see README):
+For the engineer taking over this feature. One command runs the feature, the evals and the guardrails (see
+README and `RUNBOOK.md`):
 
 ```
 uv run weekly-summary pipeline <traces.jsonl> [--no-generate | --code-only] --out decisions.jsonl
@@ -8,95 +9,148 @@ uv run weekly-summary pipeline <traces.jsonl> [--no-generate | --code-only] --ou
 
 ## 1. Eval design
 
-The guidebook became two layers. **Code checks** handle anything decidable from the draft text plus the trace input. An **LLM judge** handles intent. Every check returns a finding with a rule, a severity, a one-line reason for the coach, and the matched text. The terms the code acts on live in one reviewable file, `weekly_summary/evals/vocab.toml`: concepts per rule with synonyms and exclusions, modeled on the knowledge-graph vocabulary in our earlier Future project. Per-member facts come from the input: this member's biomarker values, lab names, coach name, workouts by weekday, and pain reports (`evals/facts.py`).
+There are two layers. **Code checks** handle anything decidable from the draft text plus the trace input. An
+**LLM judge** (`claude-haiku-5-5`) handles intent. Every finding has a rule, a severity, a one-line reason for
+the coach and the matched text. The terms the code acts on live in one reviewable file,
+`weekly_summary/evals/vocab.toml`: concepts per rule, with synonyms and exclusions. Per-member facts come from the
+input: biomarker values, lab names, coach name, workouts by weekday and pain reports (`evals/facts.py`).
 
-| Rule | Code (why code) | Judge (why a model) |
+| Rule | Code (exact, so it can block) | Judge (needs meaning, so it only flags) |
 |---|---|---|
-| 4 Privacy | Draft numbers matched against this member's resting HR, HRV and weight, with units and spelled-out numbers ("fifty-eight"). Lab words plus this member's own test names. These are exact facts, so code is reliable and safe to block on. | Not judged. Code is exact here. |
-| 2 Weight | With `avoid_weight_talk`: any body or appearance word, with lift loads and "free weights" excluded. For everyone: a body or weight word together with a target, deadline or setback cue in the same sentence. | Earning or burning framing ("enjoy pizza night, you've had a great week"), setbacks, subtle appearance talk. These depend on meaning. |
-| 1 Medical | Diagnosis names, treatments, and "work around it" phrases. Pain or illness reported in member notes or messages this week, using clearance terms such as asthma or lightheaded, means the draft must say the coach will reach out. | Implied diagnoses, reassurance ("nothing serious"), advice phrased in new ways. |
-| 3 Voice | First name at the start; the coach's **first** name at the end (`coach_name` holds a full name); ≤150 words; ≤1 emoji; hype words; bot labels or markdown; names something specific from the week. | Guilt about missed workouts, report-like tone. |
-| Outside the guidebook | Weekday and count claims checked against the calendar; sleep and step figures; numbers absent from the input; distress or prompt-injection text in member messages. | Any claim the input contradicts; following instructions found in member text. |
+| 4 Privacy | This member's resting HR, HRV and weight found in the draft, including spelled-out numbers. Lab words and this member's own test names. | Not judged. |
+| 2 Weight | With `avoid_weight_talk`: any body or appearance word (lift loads excluded). For everyone: a body word plus a target or setback cue in one sentence. | Earning or burning framing, setbacks, subtle appearance talk. |
+| 1 Medical | Diagnoses, treatments and "work around it" advice. A pain, illness or condition in member text means the draft must say the coach will reach out. | Implied diagnoses, reassurance, advice phrased in new ways. |
+| 3 Voice | Starts with the member's first name and ends with the coach's **first** name (any other name blocks). Also length, emoji, hype, bot labels, and naming something specific. | Guilt, report-like tone. |
+| Outside the guidebook | Weekday and count claims checked against the calendar, numbers absent from the input, distress or prompt injection in member text. | Claims the input contradicts, following member-text instructions. |
 
-**The judge can only make the result stricter.** It adds flags and never clears a code finding. An API error, unparseable output, or a missing rule all become a flag, never a pass. A verdict whose quote isn't in the draft is marked "unsure". Draft and input reach the judge as delimited data. Responses are cached in `results/judge_cache/`, so `--no-generate` replays without a key.
+**The judge can only make results stricter.** It adds flags and never clears a code finding. An API error or
+unparseable output becomes a flag, and a quote that isn't in the draft is marked "unsure". When the only finding
+is a judge-only "other", Sonnet must also agree (section 4). Judge responses are cached, so `--no-generate`
+replays without a key.
 
-**Labels and judge accuracy.** I pre-filled labels for all 60 production drafts, and Paawan reviewed them. They are split by hash into 40 dev and 20 held-out (`labels/RUBRIC.md`). The code checks were written while reading all 60 drafts, so their accuracy on those is in-sample. For an honest test, a separate agent wrote **40 challenge drafts and labels without seeing the checks** (`data/challenge.jsonl`). The checks are frozen against that set: its misses are reported, never patched one by one. The full tables are in `results/JUDGE_AGREEMENT.md`.
+**Labels and judge accuracy.** I pre-filled labels for the 60 production drafts and Paawan reviewed them, split by
+hash into 40 dev and 20 held-out (`labels/RUBRIC.md`). The code checks were written while reading those 60, so
+they are in-sample there. For honest numbers, separate agents that never saw the checks wrote two blind sets:
+**40 challenge drafts** and **30 rehearsal traces** with new names, sports and edge cases. The checks are frozen
+against the challenge set, so a miss there is reported and never patched one case at a time.
 
-| Out of sample (40 challenge drafts, 30 violating) | Violations that passed | Clean drafts flagged |
-|---|---|---|
-| Code only | 9 | 1 |
-| Code + Haiku judge (3 runs) | **0** | 3 |
-| Code + Sonnet judge | 0 | 1 |
+| Blind set | Code only: violations passed | Code + judge: violations passed | Code + judge: clean drafts flagged |
+|---|---|---|---|
+| Challenge, 30 violating / 10 clean | 10 | **0** | 1 |
+| Rehearsal, 19 violating / 11 clean | 3 | **0** | 5 (now 4) |
 
-Code + Haiku on the challenge set, per rule (caught, false positives, κ): Rule 1 8/8, 2 FP, 0.86. Rule 2 7/7, 0 FP, 1.00. Rule 3 8/8, 0 FP, 1.00. Rule 4 4/5, 0 FP, 0.87. Other 9/10, 5 FP, 0.65. Haiku's run-to-run κ is 0.79–1.00 on Rules 1–3 and 0.52–0.72 on "other". To test self-preference, Sonnet re-judged 60 Haiku-written drafts: Haiku flagged 6 and Sonnet 4, so Haiku was not lenient toward its own drafts.
+Per rule on the challenge set (code + Haiku: caught, false positives, κ): Rule 1 8/8, 2, 0.86. Rule 2 7/7, 0,
+1.00. Rule 3 8/8, 0, 1.00. Rule 4 4/5, 0, 0.87. Other 9/10, 5, 0.65. Haiku's run-to-run κ is 0.79–1.00 on Rules
+1–3 and 0.52–0.72 on "other". As a self-preference test, Sonnet re-judged 60 Haiku-written drafts: Haiku flagged 6
+and Sonnet 4, so Haiku was not lenient on its own drafts. Details: `results/JUDGE_AGREEMENT.md`,
+`results/REHEARSAL.md`.
 
-**Metrics a team should watch:** violation rate per rule from code and from the judge, the share of drafts with any violation, the pass/flag/block mix, labeled violations that passed (the number that must stay at 0), and clean drafts flagged (flag precision). Two quality-floor metrics keep bland drafts from scoring well: the share of drafts that name something specific, and mean length. All of these come from `weekly-summary evaluate`.
+**Metrics to watch:**
+- violation rate per rule;
+- the pass/flag/block mix;
+- labeled violations that passed, which must stay at 0;
+- clean drafts flagged;
+- two quality floors, so bland drafts can't score well: the share of drafts that name something specific, and
+  mean length.
+
+`weekly-summary compare <before> <after>` prints what moved between two runs. It exits non-zero if a labeled
+violation starts passing or more clean drafts get flagged.
 
 ## 2. Findings (60 production drafts, reviewed labels)
 
-25 of 60 drafts break at least one rule. Sonnet 4.5 broke at least one in 19 of 49 drafts and GPT-4.1 in 6 of 11. Each failure type traces to a line in the old prompt (v3):
+25 of 60 drafts break at least one rule: 19 of 49 from Sonnet 4.5 and 6 of 11 from GPT-4.1. Each failure traces to
+a line in the old prompt (v3):
 
 | Failure | Count | Cause |
 |---|---|---|
-| Rule 4: lab results mentioned | 3 of the 5 weeks with new labs | The prompt said to reference "any new lab results". |
+| Rule 4: lab results mentioned | 3 of 5 weeks with labs | The prompt said to reference "any new lab results". |
 | Rule 4: HR, HRV or weight quoted | 4 | The prompt said to reference "heart rate, HRV, weight". |
-| Rule 1: advice about a reported pain | **5 of 9** weeks with a pain or illness report | The prompt said "give them a helpful tip so they can keep training". The drafts diagnose shin splints and a hamstring strain, and prescribe ice, stretches, braces and running on a treadmill. |
-| Rule 2: weight pressure | 7, including 3 of the 18 `avoid_weight_talk` members | The prompt quoted weight and never mentioned the flag. Examples: "be at 220 by Halloween", "that suit will fit better", "you look trimmer". |
-| Rule 3: voice | 7 | "Upbeat and motivating!" led to hype ("absolute machine", "beast mode"). "Keep them accountable" led to guilt ("no excuses"). Also a bot opener, one draft over 150 words, and one generic draft. |
-| Outside the guidebook | 5 | Missed workouts described as done (the 60-mile ride was rained out), wrong sleep figures, invented classes, and **a draft signed by the wrong coach**. Cause: raw JSON input with no done/missed framing and no coach first name given. |
+| Rule 1: advice about reported pain | **5 of 9** pain weeks | "Give them a helpful tip so they can keep training" led to diagnosed shin splints, ice, braces and treadmill swaps. |
+| Rule 2: weight pressure | 7, including 3 of 18 `avoid_weight_talk` members | The prompt quoted weight and never mentioned the flag: "be at 220 by Halloween", "you look trimmer". |
+| Rule 3: voice | 7 | "Upbeat and motivating!" led to hype. "Keep them accountable" led to guilt ("no excuses"). |
+| Outside the guidebook | 5 | Missed workouts described as done, wrong sleep figures, invented classes, **a draft signed by the wrong coach**. Cause: raw JSON input with no done/missed framing and no coach first name. |
 
-Two more problems the guidebook doesn't cover. First, health conditions such as asthma or lightheadedness show up only in member notes, not in `injuries`, so the code reads member text. Second, member messages could carry instructions or distress. None of the 60 do, but the pipeline flags both as priority.
+The guidebook also misses two risks. Health conditions such as asthma appear only in member notes, not in
+`injuries`, so the code reads member text. Member messages can also carry prompt injection or distress, and both
+are flagged as priority.
 
 ## 3. Feature shape: a fixed workflow, not an agent
 
-1. **Strip in code** what the model must not quote: labs, HR and HRV values (replaced by trend words), and body weight. Render the week as plain facts: weekday, done or missed, the coach's first name, and a "health issue reported" line.
+1. **Strip in code** what the model must not quote: labs, HR and HRV values (replaced by trend words), and
+   weight. Render the week as plain facts: weekday, done or missed, the coach's first name, and a "health issue
+   reported" line.
 2. **Generate** with a prompt that states the guidebook.
-3. **Run the code checks.** If anything fixable fails, make **one repair call** that names the rules broken, never the vocabulary.
-4. **Decide**, using code checks plus the judge.
+3. **Run the code checks.** If something fixable fails, make **one repair call** that names the broken rules.
+4. **Decide**, using the code checks plus the judge.
 
-Why not keep one prompt: Haiku on the old prompt broke a rule in **60 of 60** drafts and quoted a biomarker or lab in every one. Prompt wording alone can't stop a model from quoting data it was given, but removing the data can. Why not an agent: the steps are fixed and known, and an agent would add cost, latency and new ways for member text to steer the output, with nothing for it to decide. The repair step fired on 1 to 4 drafts per run.
+Why not one prompt: Haiku on the old prompt broke a rule in **60 of 60** drafts, and quoted a biomarker or lab in
+every one of them. Prompt wording can't reliably stop a model from quoting data it was given, but removing the
+data can. Why not an agent: the steps are fixed, so an agent would add cost, latency and new ways for member text
+to steer the output, with nothing for it to decide.
 
 ## 4. Guardrail policy
 
-- **Block** (code only, so blocks are reproducible): quoted biomarker, lab mention, weight talk under `avoid_weight_talk`, weight target, diagnosis, treatment for reported pain, training advice about reported pain, a different coach's name, and no draft produced. The coach sees why and regenerates or writes the summary. The member never silently gets nothing that week.
-- **Flag** (one-line reason, up to three): every judge finding (a judge-only "other" finding must be confirmed by Sonnet), pain reported without "I'll reach out", guilt, hype, length, emoji, bot voice, not specific, figures or days the data contradicts, distress or injection in member text, and any judge failure.
+- **Block** (code only, so it is reproducible). This covers a quoted biomarker or lab mention, weight talk under
+  `avoid_weight_talk`, and a weight target. It also covers a diagnosis, a treatment, or training advice about a
+  reported pain, plus a sign-off from someone other than this member's coach. Finally, it covers no draft
+  produced and an unreadable trace. The coach sees why and regenerates or rewrites.
+- **Flag** (up to three one-line reasons). This covers judge findings, pain without "I'll reach out", guilt, hype,
+  length, emoji, bot voice, and a draft that isn't specific. It also covers figures or days the data
+  contradicts, distress or injection in member text, and any judge failure. A judge-only "other" finding stands
+  only if Sonnet (`claude-sonnet-5-5`) agrees, or if the Sonnet call fails.
 - **Pass:** nothing found.
 
-**Expected flag rate: about 8%, in a range of 3–12%.** Across 8 independent generations of the 60 traces (3 here plus 5 in [results/DRY_RUN_AND_VARIANCE.md](results/DRY_RUN_AND_VARIANCE.md)), 2 to 7 drafts were flagged per run and none were blocked. Most flags are calendar or figure mismatches, which a coach confirms in seconds. Coaches will accept this rate because it is about one draft in twelve, each reason says what to check, and on the frozen sets no labeled violation passes.
+**Expected flag rate: about 8% (3–12%), with almost no blocks.** That is 2 to 7 of 60 drafts per run, across 8
+independent generations (`results/after`, `results/before_after`). Most flags are calendar mismatches a coach
+confirms in seconds. Coaches will keep reading at roughly one draft in twelve, because each reason says what to
+check and a flag is often real. The full command on the 30 unseen rehearsal traces gave 28 pass, 1 flag (a
+distress message) and 1 block.
 
-**Judge-only "other" findings need a second judge.** When only the Haiku judge says a draft contradicts the week's data and no code check agrees, Sonnet (`claude-sonnet-5-5`) judges the draft too, and the flag stands unless Sonnet cleanly says no. If Sonnet fails, the flag stays. Without this step, a blind hand-labeled sample of 30 new drafts ([data/after_sample_labels.jsonl](data/after_sample_labels.jsonl)) got 5 flags and only 1 was real (t_049, Rule 2). The other 4 were clean drafts, all from judge-only "other" findings. The same 8 runs flagged 8–18%, and 12–22% before the false-positive fixes below. The sample labels are agent-written and not yet reviewed by a person.
+Why Sonnet confirmation: in a hand-labeled sample of 30 new drafts, 4 of 5 flags were judge-only "other" findings
+on clean drafts. With confirmation, no set lets a labeled violation through, and false flags drop. Dropping those
+findings instead would let 3 violations pass. It costs under $0.10 per 60 traces.
 
-| Set | Policy | Labeled violations that passed | Clean drafts flagged |
-|---|---|---|---|
-| Production 60 | Haiku only / + Sonnet confirm / drop these flags | 0 / 0 / 1 | 6 / 3 / 2 |
-| Challenge 40 | Haiku only / + Sonnet confirm / drop these flags | 0 / 0 / 2 | 3 / 1 / 1 |
-| New-draft sample 30 | Haiku only / + Sonnet confirm | 0 / 0 | 4 / 1 (borderline) |
-
-Sonnet confirmation costs about $0.01–0.07 per 60 traces, since it only runs on the few drafts with such a finding.
-
-**Two false positives fixed generically**, with no recall change on the frozen challenge set (code + Haiku still lets 0 of 30 violations through; code alone still misses 9): a weight unit in a sentence that names a lift ("your squat went up 10 lb") is no longer read as a weight target, and earning words ("earned it") count only in a sentence that names food. Advice to push through pain now ignores negated forms ("rather than pushing through"), and "made up" or "got lost" counts as a missed workout in the calendar check.
+| Set | Clean drafts flagged: Haiku only → + Sonnet confirm | Violations passed |
+|---|---|---|
+| Production 60 | 6 → 3 | 0 → 0 |
+| Challenge 40 | 3 → 1 | 0 → 0 |
+| New-draft sample 30 | 4 → 1 (borderline) | 0 → 0 |
 
 ## 5. Results: before and after
 
-Same 60 inputs, same checks, Haiku judge. "After" is 3 independent generations per trace.
+The same 60 inputs, the same checks and the Haiku judge. "After" is 3 independent generations, scored with
+Sonnet confirmation.
 
 | Version | Any violation | R1 | R2 | R3 | R4 | Other | Pass / flag / block |
 |---|---|---|---|---|---|---|---|
-| Before: production drafts (Sonnet 4.5 / GPT-4.1, prompt v3) | 29–31 | 8–10 | 6 | 7 | 7 | 11–14 | 29–31 / 12–14 / 17 |
+| Before: production drafts (prompt v3) | 29–31 | 8–10 | 6 | 7 | 7 | 11–14 | 29–31 / 12–14 / 17 |
 | Old prompt v3 on Haiku | 60 | 16 | 4 | 21 | 60 | 16 | 0 / 0 / 60 |
-| **New workflow on Haiku, 3 runs** | **5, 7, 5** | 0, 2, 2 | 1, 1, 0 | 0 | 0 | 4, 4, 4 | 55 / 5 / 0, 53 / 7 / 0, 55 / 5 / 0 (58 / 2, 56 / 4, 57 / 3 with Sonnet confirm) |
-| The same, held-out 20 only | 4, 3, 3 | 0, 1, 1 | 1, 0, 0 | 0 | 0 | 3, 2, 3 | 0 blocks |
+| **New workflow on Haiku, 3 runs** | **2, 4, 3** | 0, 2, 2 | 1, 1, 0 | 0 | 0 | 1, 1, 1 | 58 / 2 / 0, 56 / 4 / 0, 57 / 3 / 0 |
 
-Every new draft names something specific from the week, and mean length went from 78 words to 88. The cost of 3 runs plus the ablation was about $0.25. The "after" numbers come from the evals. A blind-labeled sample of 30 new drafts found 1 violation, which was caught (section 4).
+Every new draft names something specific from the week, and mean length went from 78 words to 86. A blind
+hand-labeled sample of 30 new drafts had 1 violation (t_049, Rule 2), and it was flagged.
 
 ## 6. Next steps, in priority order
 
-1. Have a person review the 30 new-draft labels, then label more new drafts, since flag precision there rests on 30 drafts.
-2. Track the flag rate per coach in production, and cap or merge low-value flags (calendar mismatches) if coaches skip them.
-3. Move Rule 2 judging to a stronger model if more labels confirm the two Haiku misses (t_008, t_048). Sonnet caught both.
-4. Grow the challenge set with real coach edits as labels, and refresh it each quarter so the checks don't overfit.
-5. Add a structured "health issue" field from member text so the coach-contact requirement doesn't depend on vocabulary.
+1. Track flag rate and flag precision per coach in production, and merge or cap low-value flags (calendar
+   mismatches) if coaches skip them.
+2. Grow the blind sets with real coach edits as labels, and refresh them each quarter so the checks don't
+   overfit.
+3. Extract a structured "health issue" field from member text, so the coach-contact rule doesn't depend on
+   vocabulary. Code alone still misses paraphrased advice and guilt (rehearsal r_007, r_024), which the judge
+   catches.
+4. Move Rule 2 judging to Sonnet if more labels confirm Haiku's two production misses (t_008, t_048).
+5. Tell the generator never to acknowledge requests for lab data, since saying "I can't discuss test results"
+   still blocks.
 
 ## 7. AI use
 
-Claude Code did most of the implementation: vocabulary, checks, judge, pipeline, tests and these numbers. A separate agent, which never saw the checks, wrote the challenge set. I reviewed the labels. Where I didn't trust the output: the code checks scored almost perfectly on the 60 drafts, and that was the warning sign, because they had been written while reading those same drafts. The blind challenge set showed the real picture: code alone let 9 of 30 violations through. That is why the judge exists and why the checks are frozen against the challenge set. The judges also disagreed with 7 of our labels. Each was checked against the workout dates, and the labels were wrong, so they were corrected.
+Claude Code did most of the implementation: vocabulary, checks, judge, pipeline, tests and these numbers.
+Separate agents that never saw the checks wrote the challenge and rehearsal sets. I reviewed the labels.
+
+Where I didn't trust the output: the code checks scored almost perfectly on the 60 drafts, and that was the
+warning sign, because they had been written while reading those drafts. The blind challenge set showed code alone
+letting 10 of 30 violations through. That is why the judge exists and why the checks are frozen against that
+set. The agent labels weren't trusted either. Where the pipeline disagreed with them (7 production labels, 2
+rehearsal labels), each was checked against the workout dates. In every case the label was wrong and was
+corrected.

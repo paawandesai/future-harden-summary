@@ -41,6 +41,7 @@ uv run weekly-summary pipeline data/traces.jsonl --out results/decisions.jsonl  
 uv run weekly-summary pipeline data/traces.jsonl --no-generate --out results/decisions.jsonl  # decide the drafts already in the file
 uv run weekly-summary pipeline data/traces.jsonl --code-only --out results/decisions.jsonl    # same, without the LLM judge (no API key)
 uv run weekly-summary evaluate results/details.jsonl                                          # metrics vs labels/labels.jsonl
+uv run weekly-summary compare before_details.jsonl after_details.jsonl                         # what moved; exit 1 if worse
 uv run weekly-summary crosscheck results/a.jsonl results/b.jsonl --names Sonnet Haiku          # judge vs judge, per rule
 ```
 
@@ -48,7 +49,7 @@ Add `--details results/details.jsonl` to keep every finding and draft for `evalu
 read from `ANTHROPIC_FUTURE_API_KEY`, then `ANTHROPIC_API_KEY`. Models come from `LLM_MODEL`
 (generator) and `JUDGE_MODEL`; both default to Haiku. When only the judge finds an "other" problem, `--confirm-model`
 (default `claude-sonnet-5-5`, `none` to skip) must agree before it flags. `--max-calls` caps model calls per client, and the run
-prints what it spent. `--prompt v3` regenerates with the old prompt, for comparison only. See `WRITEUP.md` for the design and results. `--judge-repeat N` judges again under a fresh cache key, for run-to-run variance.
+prints what it spent. `--prompt v3` regenerates with the old prompt, for comparison only. See `WRITEUP.md` for the design and results, and `RUNBOOK.md` for running it on unseen traces. `--judge-repeat N` judges again under a fresh cache key, for run-to-run variance.
 Judge agreement with the labels, and the Sonnet cross-check, are in `results/JUDGE_AGREEMENT.md`.
 
 ## Commands
