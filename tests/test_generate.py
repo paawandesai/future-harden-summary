@@ -8,6 +8,7 @@ from weekly_summary.data import load_traces
 from weekly_summary.generate import generate_summary
 from weekly_summary.llm import ReplayClient
 from weekly_summary.models import Member, MemberWeek, Message, Metrics, Trace, Workout
+from weekly_summary.prompt import PROMPT_VERSION
 
 
 def make_week(first_name: str, steps: int) -> MemberWeek:
@@ -103,7 +104,7 @@ def test_run_with_replay_writes_outputs(tmp_path, monkeypatch, capsys):
         ("t_001", "Great week, Ava! Your tempo run was strong. Jordan"),
         ("t_002", "Nice work, Ben. Let's get that strength session in next week. Jordan"),
     ]
-    assert [(r["prompt_version"], r["model"]) for r in rows] == [("v3", "replay"), ("v3", "replay")]
+    assert [(r["prompt_version"], r["model"]) for r in rows] == [(PROMPT_VERSION, "replay"), (PROMPT_VERSION, "replay")]
     assert capsys.readouterr().out == f"{out}\n"
 
 

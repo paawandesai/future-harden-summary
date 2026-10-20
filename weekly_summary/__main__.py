@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import sys
 from collections.abc import Callable
@@ -6,10 +7,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from weekly_summary.data import DEFAULT_TRACES, load_traces
+from weekly_summary.evals.judge import JUDGE_VERSION, Judge
+from weekly_summary.evals.report import load_details, load_labels, markdown, summarize
 from weekly_summary.generate import generate_summary
-from weekly_summary.llm import LLMClient, make_client
+from weekly_summary.llm import DEFAULT_MODELS, LLMClient, make_client
 from weekly_summary.models import Trace
+from weekly_summary.pipeline import CallBudget, Mode, Result, run_pipeline
 from weekly_summary.prompt import PROMPT_VERSION
+
+DEFAULT_LABELS = DEFAULT_TRACES.parent.parent / "labels" / "labels.jsonl"
 
 
 def _client_for(traces: list[Trace]) -> Callable[[Trace], LLMClient]:
@@ -49,6 +55,45 @@ def _run(traces: list[Trace], client_for: Callable[[Trace], LLMClient], out: Pat
             f.flush()
 
 
+def _judge(budget: int) -> Judge:
+    provider = os.environ.get("JUDGE_PROVIDER", "anthropic")
+    model = os.environ.get("JUDGE_MODEL") or DEFAULT_MODELS.get(provider)
+    try:
+        client = make_client(provider, model, [])
+    except ValueError as e:
+        sys.exit(str(e))
+    return Judge(CallBudget(client, budget))
+
+
+def _pipeline(args: argparse.Namespace, traces: list[Trace]) -> None:
+    mode: Mode = "code-only" if args.code_only else "no-generate" if args.no_generate else "generate"
+    judge = None if mode == "code-only" else _judge(args.max_calls)
+    generator_for: Callable[[Trace], LLMClient] | None = None
+    if mode == "generate":
+        client_for = _client_for(traces)
+        budgets: dict[int, CallBudget] = {}
+
+        def budgeted(trace: Trace) -> LLMClient:
+            client = client_for(trace)
+            # One budget per client; replay clients are made per trace and cost nothing.
+            return budgets.setdefault(id(client), CallBudget(client, args.max_calls))
+
+        generator_for = budgeted
+
+    details = run_pipeline(traces, mode, generator_for, judge, workers=args.workers)
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    with args.out.open("w") as f:
+        for d in details:
+            f.write(Result(trace_id=d.trace_id, decision=d.decision, reasons=d.reasons).model_dump_json() + "\n")
+    if args.details:
+        args.details.parent.mkdir(parents=True, exist_ok=True)
+        with args.details.open("w") as f:
+            for d in details:
+                f.write(d.model_dump_json() + "\n")
+    counts = {k: sum(d.decision == k for d in details) for k in ("pass", "flag", "block")}
+    print(f"{args.out}: {counts} (prompt {PROMPT_VERSION}, judge {JUDGE_VERSION}, mode {mode})", file=sys.stderr)
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="weekly-summary")
     parser.add_argument("--traces", type=Path, default=DEFAULT_TRACES, help="traces JSONL file")
@@ -64,7 +109,32 @@ def main(argv: list[str] | None = None) -> None:
     run.add_argument("--out", type=Path, help="output JSONL (default: runs/<UTC timestamp>.jsonl)")
     run.add_argument("--limit", type=int, help="only run the first N traces")
 
+    pipeline = commands.add_parser("pipeline", help="feature, evals and guardrails: one decision line per trace")
+    pipeline.add_argument("traces_path", type=Path, nargs="?", help="traces JSONL (default: --traces)")
+    pipeline.add_argument("--out", type=Path, default=Path("results/decisions.jsonl"))
+    pipeline.add_argument("--details", type=Path, help="also write findings and drafts here")
+    skip = pipeline.add_mutually_exclusive_group()
+    skip.add_argument("--no-generate", action="store_true", help="decide the drafts already in the traces file")
+    skip.add_argument("--code-only", action="store_true", help="like --no-generate, without the LLM judge")
+    pipeline.add_argument("--workers", type=int, default=4)
+    pipeline.add_argument("--max-calls", type=int, default=500, help="stop calling a model after this many calls")
+
+    evaluate = commands.add_parser("evaluate", help="metrics for a details file, against labels")
+    evaluate.add_argument("details", type=Path)
+    evaluate.add_argument("--labels", type=Path, default=DEFAULT_LABELS)
+    evaluate.add_argument("--out", type=Path, help="write the full report as JSON")
+
     args = parser.parse_args(argv)
+    if args.command == "evaluate":
+        labels = load_labels(args.labels) if args.labels and args.labels.exists() else None
+        report = summarize(load_details(args.details), labels)
+        if args.out:
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(json.dumps(report, indent=2) + "\n")
+        print(markdown(report))
+        return
+    if args.command == "pipeline" and args.traces_path:
+        args.traces = args.traces_path
     traces = load_traces(args.traces)
 
     match args.command:
@@ -76,6 +146,8 @@ def main(argv: list[str] | None = None) -> None:
         case "generate":
             trace = _find(traces, args.trace_id)
             print(generate_summary(trace.input, _client_for(traces)(trace)))
+        case "pipeline":
+            _pipeline(args, traces)
         case "run":
             out = args.out or Path("runs") / f"{datetime.now(UTC):%Y%m%dT%H%M%SZ}.jsonl"
             _run(traces[: args.limit], _client_for(traces), out)

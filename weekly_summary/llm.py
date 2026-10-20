@@ -1,3 +1,4 @@
+import os
 from typing import Protocol
 
 import anthropic
@@ -6,7 +7,14 @@ import openai
 from weekly_summary.models import Trace
 from weekly_summary.prompt import render_user_message
 
-DEFAULT_MODELS = {"anthropic": "claude-sonnet-5-5", "openai": "gpt-5.5"}
+DEFAULT_MODELS = {"anthropic": "claude-haiku-5-5", "openai": "gpt-5.5"}
+
+# The project's own key name first; the SDK's usual name still works for a reviewer's key.
+ANTHROPIC_KEY_VARS = ("ANTHROPIC_FUTURE_API_KEY", "ANTHROPIC_API_KEY")
+
+
+def anthropic_api_key() -> str | None:
+    return next((os.environ[v] for v in ANTHROPIC_KEY_VARS if os.environ.get(v)), None)
 
 
 class LLMClient(Protocol):
@@ -16,10 +24,10 @@ class LLMClient(Protocol):
 
 
 class AnthropicClient:
-    def __init__(self, model: str, max_tokens: int = 1024) -> None:
+    def __init__(self, model: str, max_tokens: int = 1024, timeout: float = 60, max_retries: int = 3) -> None:
         self.model = model
         self.max_tokens = max_tokens
-        self._client = anthropic.Anthropic()
+        self._client = anthropic.Anthropic(api_key=anthropic_api_key(), timeout=timeout, max_retries=max_retries)
 
     def complete(self, system: str, user: str) -> str:
         response = self._client.messages.create(
@@ -32,10 +40,10 @@ class AnthropicClient:
 
 
 class OpenAIClient:
-    def __init__(self, model: str, max_tokens: int = 1024) -> None:
+    def __init__(self, model: str, max_tokens: int = 1024, timeout: float = 60, max_retries: int = 3) -> None:
         self.model = model
         self.max_tokens = max_tokens
-        self._client = openai.OpenAI()
+        self._client = openai.OpenAI(timeout=timeout, max_retries=max_retries)
 
     def complete(self, system: str, user: str) -> str:
         response = self._client.chat.completions.create(
