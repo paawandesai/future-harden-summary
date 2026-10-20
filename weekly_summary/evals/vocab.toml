@@ -74,9 +74,27 @@ terms = [
 # Food or exercise framed as earning or burning off something. A cue for the judge: "you've
 # earned a rest day" is fine, so a hit alone only flags.
 [rule2.earn_burn]
+terms = ["burn off", "burn it off", "burned off", "work it off", "work off", "cheat meal", "cheat day", "guilt-free"]
+
+# Earning words. They count only in a sentence that also names food (rule2.food): "you earned
+# that chin-up" is praise, "you earned that pizza" ties food to exercise.
+[rule2.earn]
+terms = ["earned", "earn", "earned it", "you deserve", "deserved", "treat yourself", "make up for", "reward"]
+
+[rule2.food]
 terms = [
-    "earned", "earn", "earned it", "burn off", "burn it off", "burned off", "work it off",
-    "work off", "make up for", "cheat meal", "cheat day", "guilt-free", "you deserve", "treat yourself",
+    "pizza", "dessert", "cake", "cookie", "cookies", "ice cream", "burger", "fries", "treat", "treats",
+    "meal", "dinner", "brunch", "drinks", "beer", "wine", "cocktail", "snack", "snacks", "calories",
+    "food", "eat", "eating", "bbq", "takeout", "donut", "donuts", "chocolate", "candy",
+]
+
+# Lifts and loads. A sentence naming one is about the bar, not the body, so a weight unit in it
+# ("your squat went up 10 lb") is never read as a weight target.
+[rule2.lift]
+terms = [
+    "squat", "squats", "deadlift", "deadlifts", "bench press", "overhead press", "rows", "curl", "curls",
+    "hip thrust", "hip thrusts", "lunges", "kettlebell", "dumbbell", "dumbbells", "barbell", "plates",
+    "reps", "lifted", "lifting", "goblet", "snatch", "sled",
 ]
 
 # Rule 3. Hype words (GUIDEBOOK.md examples plus close variants).

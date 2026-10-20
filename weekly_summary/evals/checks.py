@@ -11,7 +11,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 from weekly_summary.evals.facts import WeekFacts, numbers_in
-from weekly_summary.evals.vocab import load_vocab, normalize
+from weekly_summary.evals.vocab import Concept, load_vocab, normalize
 
 Rule = Literal["1", "2", "3", "4", "other"]
 Severity = Literal["block", "flag"]
@@ -115,8 +115,11 @@ def weight_talk(draft: str, facts: WeekFacts) -> list[Finding]:
                 evidence=", ".join(terms),
             )
         )
+    lift = vocab["rule2.lift"]
     for sentence in sentences(draft):
-        if (body.hits(sentence) or weight_units.hits(sentence)) and target.hits(sentence):
+        # A weight unit next to a lift is a load. Body words still count whatever else is there.
+        weight_unit = weight_units.hits(sentence) and not lift.hits(sentence)
+        if (body.hits(sentence) or weight_unit) and target.hits(sentence):
             findings.append(
                 Finding(
                     rule="2",
@@ -127,7 +130,9 @@ def weight_talk(draft: str, facts: WeekFacts) -> list[Finding]:
                 )
             )
             break
-    if terms := vocab["rule2.earn_burn"].find(draft):
+    terms = vocab["rule2.earn_burn"].find(draft)
+    terms += [t for x in sentences(draft) if vocab["rule2.food"].hits(x) for t in vocab["rule2.earn"].find(x)]
+    if terms:
         findings.append(
             Finding(
                 rule="2",
@@ -263,6 +268,22 @@ def specificity(draft: str, facts: WeekFacts) -> list[Finding]:
 
 # Rule 1 ---------------------------------------------------------------------------------------
 
+_NEGATION = re.compile(
+    r"\b(?:rather than|instead of|not|don't|do not|never|no need to|without|avoid)\s+(?:\w+\s+){0,2}$"
+)
+
+
+def _unnegated(concept: Concept, text: str) -> list[str]:
+    """Terms of `concept` in text, except where a negation comes just before ("rather than pushing through")."""
+    found: list[str] = []
+    for sentence in sentences(normalize(text)):
+        for term in concept.find(sentence):
+            for match in re.finditer(r"(?<![\w'])" + re.escape(normalize(term)) + r"(?![\w'])", sentence):
+                if not _NEGATION.search(sentence[: match.start()]):
+                    found.append(term)
+                    break
+    return found
+
 
 def medical_advice(draft: str, facts: WeekFacts) -> list[Finding]:
     vocab = load_vocab()
@@ -288,7 +309,7 @@ def medical_advice(draft: str, facts: WeekFacts) -> list[Finding]:
                 evidence=", ".join(treatment),
             )
         )
-    if reported and (around := vocab["rule1.train_through"].find(draft)):
+    if reported and (around := _unnegated(vocab["rule1.train_through"], draft)):
         findings.append(
             Finding(
                 rule="1",
@@ -386,7 +407,7 @@ _WEEKDAY = re.compile(r"\b(monday|tuesday|wednesday|thursday|friday|saturday|sun
 _FORWARD = re.compile(r"\bnext\b|\blet's\b|\bwe'll\b|\bwill\b|\btomorrow\b|\bthis coming\b|\bplan\b")
 _NOT_DONE = re.compile(
     r"\bmiss(?:ed|ing)?\b|\bskip(?:ped)?\b|didn't|did not|\bcut\b|\bslipped\b|\bmoved\b|\bswapped\b|"
-    r"\bswap\b|\brain|\bclosed\b|\bsick\b|\bcancel|\bbailed\b|\bstopped\b|\binstead\b|wasn't|couldn't|\bout\b|\boff\b"
+    r"\bswap\b|\brain|\bclosed\b|\bsick\b|\bcancel|\bbailed\b|\bstopped\b|\binstead\b|wasn't|couldn't|\bout\b|\boff\b|\blost\b|\blate\b|\bmak(?:e|ing) up\b|\bmade up\b"
 )
 # Workout kinds a draft counts, and the words in a workout name that make it that kind.
 _KINDS = {

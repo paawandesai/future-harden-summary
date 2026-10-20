@@ -62,7 +62,11 @@ Why not keep one prompt: Haiku on the old prompt broke a rule in **60 of 60** dr
 - **Flag** (one-line reason, up to three): every judge finding, pain reported without "I'll reach out", guilt, hype, length, emoji, bot voice, not specific, figures or days the data contradicts, distress or injection in member text, and any judge failure.
 - **Pass:** nothing found.
 
-**Expected flag rate: about 12–13%.** That is 7–8 of 60 per run across 3 runs, with no blocks. Most flags are calendar or figure mismatches, which a coach confirms in seconds. Coaches will accept this rate because it is about one draft in eight, each reason says what to check, and on the challenge set code + Haiku let no violation through. That makes a flag worth reading.
+**Expected flag rate: about 12%, in a range of 8–18%.** Across 8 independent generations of the 60 traces (3 here plus 5 in [results/DRY_RUN_AND_VARIANCE.md](results/DRY_RUN_AND_VARIANCE.md)), 5 to 11 drafts were flagged per run and none were blocked. Before two generic false-positive fixes (below), the same 8 runs flagged 12–22%, about 16%. Most flags are calendar or figure mismatches, which a coach confirms in seconds. Coaches will accept this rate because it is about one draft in eight, each reason says what to check, and on the challenge set code + Haiku let no violation through.
+
+**Measured flag precision on new drafts is low.** A blind hand-labeled sample of 30 new drafts ([data/after_sample_labels.jsonl](data/after_sample_labels.jsonl)) had one real violation (t_049, Rule 2), and it was flagged. The other 4 flags were clean drafts (2 of them borderline), all from judge-only "other" findings. So 1 of 5 flags was real. These labels are agent-written and not yet reviewed by a person.
+
+**Two false positives fixed generically**, with no recall change on the frozen challenge set (code + Haiku still lets 0 of 30 violations through; code alone still misses 9): a weight unit in a sentence that names a lift ("your squat went up 10 lb") is no longer read as a weight target, and earning words ("earned it") count only in a sentence that names food. Advice to push through pain now ignores negated forms ("rather than pushing through"), and "made up" or "got lost" counts as a missed workout in the calendar check.
 
 ## 5. Results: before and after
 
@@ -72,14 +76,14 @@ Same 60 inputs, same checks, Haiku judge. "After" is 3 independent generations p
 |---|---|---|---|---|---|---|---|
 | Before: production drafts (Sonnet 4.5 / GPT-4.1, prompt v3) | 29–31 | 8–10 | 6 | 7 | 7 | 11–14 | 29–31 / 12–14 / 17 |
 | Old prompt v3 on Haiku | 60 | 16 | 4 | 21 | 60 | 16 | 0 / 0 / 60 |
-| **New workflow on Haiku, 3 runs** | **7, 8, 7** | 0, 2, 2 | 1, 2, 1 | 0 | 0 | 6, 5, 5 | 53 / 7 / 0, 52 / 8 / 0, 53 / 7 / 0 |
+| **New workflow on Haiku, 3 runs** | **5, 7, 5** | 0, 2, 2 | 1, 1, 0 | 0 | 0 | 4, 4, 4 | 55 / 5 / 0, 53 / 7 / 0, 55 / 5 / 0 |
 | The same, held-out 20 only | 4, 3, 3 | 0, 1, 1 | 1, 0, 0 | 0 | 0 | 3, 2, 3 | 0 blocks |
 
-Every new draft names something specific from the week, and mean length went from 78 words to 88. The cost of 3 runs plus the ablation was about $0.25. The "after" numbers come from the evals, not from hand labels, so a hand-labeled sample of new drafts is the first next step.
+Every new draft names something specific from the week, and mean length went from 78 words to 88. The cost of 3 runs plus the ablation was about $0.25. The "after" numbers come from the evals. A blind-labeled sample of 30 new drafts found 1 violation, which was caught (section 4).
 
 ## 6. Next steps, in priority order
 
-1. Hand-label about 30 new drafts to measure flag precision on the "after" distribution, since current "after" numbers are judge-measured.
+1. Raise flag precision on new drafts: confirm judge-only "other" findings with a second model before flagging, and have a person review the 30 after-sample labels.
 2. Track the flag rate per coach in production, and cap or merge low-value flags (calendar mismatches) if coaches skip them.
 3. Move Rule 2 judging to a stronger model if more labels confirm the two Haiku misses (t_008, t_048). Sonnet caught both.
 4. Grow the challenge set with real coach edits as labels, and refresh it each quarter so the checks don't overfit.

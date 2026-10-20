@@ -251,3 +251,18 @@ def test_call_budget_deadline_fails_closed():
     budget = CallBudget(FakeClient("x"), 10, deadline=0.0)
     with pytest.raises(TimeoutError):
         budget.complete("s", "u")
+
+
+def test_lift_loads_and_negations_are_not_violations():
+    assert "weight_target" not in checks(CLEAN.replace("Same plan", "Your squat went up 10 lb this week. Same plan"))
+    assert "weight_target" in checks(
+        CLEAN.replace("Same plan", "The scale went up 2 lb, let's get that back down. Same plan")
+    )
+    assert "earn_burn" not in checks(CLEAN.replace("Same plan", "That chin-up, you earned it. Same plan"))
+    assert "earn_burn" in checks(CLEAN.replace("Same plan", "You earned that pizza night. Same plan"))
+    w = week(note="knee hurts on the downhill")
+    contact = "I'll reach out about the knee."
+    negated = CLEAN.replace("Same plan", f"Thanks for telling me rather than pushing through. {contact} Same plan")
+    assert "train_through" not in checks(negated, w)
+    advice = CLEAN.replace("Same plan", f"Push through it this week. {contact} Same plan")
+    assert "train_through" in checks(advice, w)
