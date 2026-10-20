@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from weekly_summary.data import DEFAULT_TRACES, load_traces
+from weekly_summary.evals import crosscheck
 from weekly_summary.evals.judge import JUDGE_VERSION, Judge
 from weekly_summary.evals.report import load_details, load_labels, markdown, summarize
 from weekly_summary.generate import generate_summary
@@ -55,23 +56,28 @@ def _run(traces: list[Trace], client_for: Callable[[Trace], LLMClient], out: Pat
             f.flush()
 
 
-def _judge(budget: int) -> Judge:
+def _judge(budget: int, repeat: int = 0) -> Judge:
     provider = os.environ.get("JUDGE_PROVIDER", "anthropic")
     model = os.environ.get("JUDGE_MODEL") or DEFAULT_MODELS.get(provider)
     try:
         client = make_client(provider, model, [])
     except ValueError as e:
         sys.exit(str(e))
-    return Judge(CallBudget(client, budget))
+    return Judge(CallBudget(client, budget), repeat=repeat)
+
+
+def _spend(*budgets: CallBudget) -> str:
+    total = sum(getattr(b.client, "cost_usd", 0.0) for b in budgets)
+    return f"${total:.4f}"
 
 
 def _pipeline(args: argparse.Namespace, traces: list[Trace]) -> None:
     mode: Mode = "code-only" if args.code_only else "no-generate" if args.no_generate else "generate"
-    judge = None if mode == "code-only" else _judge(args.max_calls)
+    judge = None if mode == "code-only" else _judge(args.max_calls, args.judge_repeat)
     generator_for: Callable[[Trace], LLMClient] | None = None
+    budgets: dict[int, CallBudget] = {}
     if mode == "generate":
         client_for = _client_for(traces)
-        budgets: dict[int, CallBudget] = {}
 
         def budgeted(trace: Trace) -> LLMClient:
             client = client_for(trace)
@@ -91,7 +97,12 @@ def _pipeline(args: argparse.Namespace, traces: list[Trace]) -> None:
             for d in details:
                 f.write(d.model_dump_json() + "\n")
     counts = {k: sum(d.decision == k for d in details) for k in ("pass", "flag", "block")}
-    print(f"{args.out}: {counts} (prompt {PROMPT_VERSION}, judge {JUDGE_VERSION}, mode {mode})", file=sys.stderr)
+    spent = [*budgets.values(), *([judge.client] if judge and isinstance(judge.client, CallBudget) else [])]
+    print(
+        f"{args.out}: {counts} (prompt {PROMPT_VERSION}, judge {JUDGE_VERSION} {judge.client.model if judge else '-'}, "
+        f"mode {mode}, spent {_spend(*spent)})",
+        file=sys.stderr,
+    )
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -118,13 +129,27 @@ def main(argv: list[str] | None = None) -> None:
     skip.add_argument("--code-only", action="store_true", help="like --no-generate, without the LLM judge")
     pipeline.add_argument("--workers", type=int, default=4)
     pipeline.add_argument("--max-calls", type=int, default=500, help="stop calling a model after this many calls")
+    pipeline.add_argument("--judge-repeat", type=int, default=0, help="judge again under a fresh cache key (variance runs)")
 
     evaluate = commands.add_parser("evaluate", help="metrics for a details file, against labels")
     evaluate.add_argument("details", type=Path)
     evaluate.add_argument("--labels", type=Path, default=DEFAULT_LABELS)
     evaluate.add_argument("--out", type=Path, help="write the full report as JSON")
 
+    cross = commands.add_parser("crosscheck", help="judge-vs-judge agreement for two details files")
+    cross.add_argument("reference", type=Path)
+    cross.add_argument("other", type=Path)
+    cross.add_argument("--names", nargs=2, default=["A", "B"])
+    cross.add_argument("--out", type=Path, help="write the result as JSON")
+
     args = parser.parse_args(argv)
+    if args.command == "crosscheck":
+        result = crosscheck.compare(load_details(args.reference), load_details(args.other))
+        if args.out:
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(json.dumps(result, indent=2) + "\n")
+        print(crosscheck.markdown(result, *args.names))
+        return
     if args.command == "evaluate":
         labels = load_labels(args.labels) if args.labels and args.labels.exists() else None
         report = summarize(load_details(args.details), labels)

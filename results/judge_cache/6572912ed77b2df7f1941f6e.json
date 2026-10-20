@@ -1,0 +1,1 @@
+{"verdicts":[{"rule":"1","violated":false,"quote":"","why":""},{"rule":"2","violated":true,"quote":"it shows on the scale too, you're down another 1.4 lb to 168.4","why":"Mentions body weight and praises weight loss despite avoid_weight_talk being true."},{"rule":"3","violated":false,"quote":"","why":""},{"rule":"other","violated":false,"quote":"","why":""}]}

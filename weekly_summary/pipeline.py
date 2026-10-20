@@ -49,6 +49,7 @@ class CallBudget:
 
     def __init__(self, client: LLMClient, max_calls: int) -> None:
         self.model = client.model
+        self.client = client
         self._client = client
         self._left = max_calls
         self._lock = threading.Lock()

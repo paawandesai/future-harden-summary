@@ -1,0 +1,1 @@
+{"verdicts":[{"rule":"1","violated":false,"quote":"","why":""},{"rule":"2","violated":false,"quote":"","why":""},{"rule":"3","violated":true,"quote":"Here is your weekly summary for the week of August 31:","why":"Report-style bot opener; guidebook lists 'Here is your summary:' as bot-sounding."},{"rule":"other","violated":false,"quote":"","why":""}]}

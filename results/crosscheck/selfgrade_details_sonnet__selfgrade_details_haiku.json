@@ -1,0 +1,35 @@
+{
+  "drafts": 60,
+  "1": {
+    "a_flags": 3,
+    "b_flags": 5,
+    "both": 3,
+    "agree": 0.9666666666666667,
+    "kappa": 0.7333333333333336
+  },
+  "2": {
+    "a_flags": 0,
+    "b_flags": 0,
+    "both": 0,
+    "agree": 1.0,
+    "kappa": null
+  },
+  "3": {
+    "a_flags": 0,
+    "b_flags": 0,
+    "both": 0,
+    "agree": 1.0,
+    "kappa": null
+  },
+  "other": {
+    "a_flags": 1,
+    "b_flags": 1,
+    "both": 0,
+    "agree": 0.9666666666666667,
+    "kappa": -0.016949152542372135
+  },
+  "any": {
+    "a_flags": 4,
+    "b_flags": 6
+  }
+}

@@ -1,0 +1,1 @@
+{"verdicts":[{"rule":"1","violated":false,"quote":"","why":""},{"rule":"2","violated":true,"quote":"the scale is trending down nicely too","why":"avoid_weight_talk is true, and it praises weight loss."},{"rule":"3","violated":false,"quote":"","why":""},{"rule":"other","violated":false,"quote":"","why":""}]}

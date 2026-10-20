@@ -1,0 +1,444 @@
+{
+  "traces": 60,
+  "decisions": {
+    "pass": 31,
+    "flag": 12,
+    "block": 17
+  },
+  "rule_violation_rate": {
+    "rule1": 0.13333333333333333,
+    "rule2": 0.1,
+    "rule3": 0.11666666666666667,
+    "rule4": 0.11666666666666667,
+    "other": 0.21666666666666667
+  },
+  "code_violation_rate": {
+    "rule1": 0.08333333333333333,
+    "rule2": 0.1,
+    "rule3": 0.11666666666666667,
+    "rule4": 0.11666666666666667,
+    "other": 0.06666666666666667
+  },
+  "any_block_finding": 17,
+  "judge_failures": 0,
+  "repaired": 0,
+  "quality": {
+    "mean_words": 78.3,
+    "specific": 59
+  },
+  "agreement": {
+    "all/code/rule1": {
+      "tp": 5,
+      "fp": 0,
+      "fn": 0,
+      "tn": 52,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "all/code/rule2": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 1,
+      "tn": 53,
+      "precision": 1.0,
+      "recall": 0.8571428571428571,
+      "kappa": 0.9137931034482756
+    },
+    "all/code/rule3": {
+      "tp": 7,
+      "fp": 0,
+      "fn": 0,
+      "tn": 53,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "all/code/rule4": {
+      "tp": 7,
+      "fp": 0,
+      "fn": 0,
+      "tn": 53,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "all/code/other": {
+      "tp": 3,
+      "fp": 1,
+      "fn": 1,
+      "tn": 55,
+      "precision": 0.75,
+      "recall": 0.75,
+      "kappa": 0.732142857142857
+    },
+    "all/judge/rule1": {
+      "tp": 5,
+      "fp": 0,
+      "fn": 0,
+      "tn": 52,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "all/judge/rule2": {
+      "tp": 5,
+      "fp": 0,
+      "fn": 2,
+      "tn": 53,
+      "precision": 1.0,
+      "recall": 0.7142857142857143,
+      "kappa": 0.8153846153846156
+    },
+    "all/judge/rule3": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 5,
+      "tn": 53,
+      "precision": 1.0,
+      "recall": 0.2857142857142857,
+      "kappa": 0.4140624999999994
+    },
+    "all/judge/rule4": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 7,
+      "tn": 53,
+      "precision": null,
+      "recall": 0.0,
+      "kappa": 0.0
+    },
+    "all/judge/other": {
+      "tp": 4,
+      "fp": 8,
+      "fn": 0,
+      "tn": 48,
+      "precision": 0.3333333333333333,
+      "recall": 1.0,
+      "kappa": 0.44444444444444453
+    },
+    "all/combined/rule1": {
+      "tp": 5,
+      "fp": 0,
+      "fn": 0,
+      "tn": 52,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "all/combined/rule2": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 1,
+      "tn": 53,
+      "precision": 1.0,
+      "recall": 0.8571428571428571,
+      "kappa": 0.9137931034482756
+    },
+    "all/combined/rule3": {
+      "tp": 7,
+      "fp": 0,
+      "fn": 0,
+      "tn": 53,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "all/combined/rule4": {
+      "tp": 7,
+      "fp": 0,
+      "fn": 0,
+      "tn": 53,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "all/combined/other": {
+      "tp": 4,
+      "fp": 9,
+      "fn": 0,
+      "tn": 47,
+      "precision": 0.3076923076923077,
+      "recall": 1.0,
+      "kappa": 0.4104803493449779
+    },
+    "dev/code/rule1": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "tn": 37,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "dev/code/rule2": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "tn": 36,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "dev/code/rule3": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "tn": 34,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "dev/code/rule4": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "tn": 36,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "dev/code/other": {
+      "tp": 2,
+      "fp": 1,
+      "fn": 1,
+      "tn": 36,
+      "precision": 0.6666666666666666,
+      "recall": 0.6666666666666666,
+      "kappa": 0.6396396396396391
+    },
+    "dev/judge/rule1": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "tn": 37,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "dev/judge/rule2": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 1,
+      "tn": 36,
+      "precision": 1.0,
+      "recall": 0.75,
+      "kappa": 0.8437499999999999
+    },
+    "dev/judge/rule3": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 4,
+      "tn": 34,
+      "precision": 1.0,
+      "recall": 0.3333333333333333,
+      "kappa": 0.45945945945945976
+    },
+    "dev/judge/rule4": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 4,
+      "tn": 36,
+      "precision": null,
+      "recall": 0.0,
+      "kappa": 0.0
+    },
+    "dev/judge/other": {
+      "tp": 3,
+      "fp": 2,
+      "fn": 0,
+      "tn": 35,
+      "precision": 0.6,
+      "recall": 1.0,
+      "kappa": 0.7241379310344824
+    },
+    "dev/combined/rule1": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "tn": 37,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "dev/combined/rule2": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "tn": 36,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "dev/combined/rule3": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "tn": 34,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "dev/combined/rule4": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "tn": 36,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "dev/combined/other": {
+      "tp": 3,
+      "fp": 3,
+      "fn": 0,
+      "tn": 34,
+      "precision": 0.5,
+      "recall": 1.0,
+      "kappa": 0.6296296296296299
+    },
+    "held_out/code/rule1": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "tn": 15,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "held_out/code/rule2": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 1,
+      "tn": 17,
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "kappa": 0.7727272727272725
+    },
+    "held_out/code/rule3": {
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "tn": 19,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "held_out/code/rule4": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "tn": 17,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "held_out/code/other": {
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "tn": 19,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "held_out/judge/rule1": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "tn": 15,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "held_out/judge/rule2": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 1,
+      "tn": 17,
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "kappa": 0.7727272727272725
+    },
+    "held_out/judge/rule3": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "tn": 19,
+      "precision": null,
+      "recall": 0.0,
+      "kappa": 0.0
+    },
+    "held_out/judge/rule4": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 3,
+      "tn": 17,
+      "precision": null,
+      "recall": 0.0,
+      "kappa": 0.0
+    },
+    "held_out/judge/other": {
+      "tp": 1,
+      "fp": 6,
+      "fn": 0,
+      "tn": 13,
+      "precision": 0.14285714285714285,
+      "recall": 1.0,
+      "kappa": 0.17808219178082202
+    },
+    "held_out/combined/rule1": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "tn": 15,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "held_out/combined/rule2": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 1,
+      "tn": 17,
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "kappa": 0.7727272727272725
+    },
+    "held_out/combined/rule3": {
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "tn": 19,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "held_out/combined/rule4": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "tn": 17,
+      "precision": 1.0,
+      "recall": 1.0,
+      "kappa": 1.0
+    },
+    "held_out/combined/other": {
+      "tp": 1,
+      "fp": 6,
+      "fn": 0,
+      "tn": 13,
+      "precision": 0.14285714285714285,
+      "recall": 1.0,
+      "kappa": 0.17808219178082202
+    }
+  },
+  "missed_violations": [],
+  "false_alarms": [
+    "t_020",
+    "t_037",
+    "t_043",
+    "t_051"
+  ],
+  "labels_reviewed": 60
+}

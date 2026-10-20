@@ -21,7 +21,7 @@ class Recorder:
 def test_anthropic_client_call_matches_installed_sdk(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
     client = AnthropicClient("claude-sonnet-5-5")
-    recorder = Recorder(SimpleNamespace(content=[SimpleNamespace(type="text", text="Hi Maya. Jordan")]))
+    recorder = Recorder(SimpleNamespace(content=[SimpleNamespace(type="text", text="Hi Maya. Jordan")], stop_reason="end_turn"))
     monkeypatch.setattr(client, "_client", SimpleNamespace(messages=recorder))
 
     assert client.complete("system", "user") == "Hi Maya. Jordan"

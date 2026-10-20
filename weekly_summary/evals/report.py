@@ -83,6 +83,9 @@ def agreement(details: list[Detail], labels: dict[str, Label], rule: str, source
         label = labels.get(detail.trace_id)
         if label is None or (split and label.split != split):
             continue
+        if rule in label.borderline:
+            # A reasonable reviewer could go either way, so neither answer is scored (RUBRIC.md).
+            continue
         truth, guess = bool(getattr(label, rule)), predicted(detail, rule, source)
         counts["tp" if truth and guess else "fp" if guess else "fn" if truth else "tn"] += 1
     return Agreement(tp=counts["tp"], fp=counts["fp"], fn=counts["fn"], tn=counts["tn"])

@@ -32,11 +32,14 @@ uv run weekly-summary pipeline data/traces.jsonl --out results/decisions.jsonl  
 uv run weekly-summary pipeline data/traces.jsonl --no-generate --out results/decisions.jsonl  # decide the drafts already in the file
 uv run weekly-summary pipeline data/traces.jsonl --code-only --out results/decisions.jsonl    # same, without the LLM judge (no API key)
 uv run weekly-summary evaluate results/details.jsonl                                          # metrics vs labels/labels.jsonl
+uv run weekly-summary crosscheck results/a.jsonl results/b.jsonl --names Sonnet Haiku          # judge vs judge, per rule
 ```
 
 Add `--details results/details.jsonl` to keep every finding and draft for `evaluate`. The key is
 read from `ANTHROPIC_FUTURE_API_KEY`, then `ANTHROPIC_API_KEY`. Models come from `LLM_MODEL`
-(generator) and `JUDGE_MODEL`; both default to Haiku. `--max-calls` caps model calls per client.
+(generator) and `JUDGE_MODEL`; both default to Haiku. `--max-calls` caps model calls per client, and the run
+prints what it spent. `--judge-repeat N` judges again under a fresh cache key, for run-to-run variance.
+Judge agreement with the labels, and the Sonnet cross-check, are in `results/JUDGE_AGREEMENT.md`.
 
 ## Commands
 

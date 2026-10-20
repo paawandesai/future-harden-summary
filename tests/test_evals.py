@@ -4,7 +4,7 @@ from datetime import date, datetime
 import pytest
 
 from weekly_summary.__main__ import main
-from weekly_summary.evals.checks import run_checks
+from weekly_summary.evals.checks import Finding, run_checks
 from weekly_summary.evals.facts import numbers_in, week_facts
 from weekly_summary.evals.judge import Judge
 from weekly_summary.models import LabResult, Member, MemberWeek, Message, Metrics, Trace, Workout
@@ -204,3 +204,22 @@ def test_pipeline_writes_one_line_per_trace_in_the_required_shape(tmp_path, caps
     assert [(r["trace_id"], r["decision"]) for r in rows] == [("t_0", "pass"), ("t_1", "block"), ("t_2", "flag")]
     assert rows[1]["reasons"] == ["Quotes a resting heart rate value (Rule 4)."]
     assert all(isinstance(reason, str) for r in rows for reason in r["reasons"])
+
+
+def test_crosscheck_counts_only_judge_verdicts():
+    from weekly_summary.evals.crosscheck import compare
+    from weekly_summary.pipeline import Detail
+
+    def detail(tid: str, rules: list[str], check: str = "judge_rule") -> Detail:
+        findings = [
+            Finding(rule=r, check=f"{check}{r}", severity="flag", reason="x", evidence="", source="judge")  # type: ignore[arg-type]
+            for r in rules
+        ]
+        return Detail(trace_id=tid, mode="no-generate", draft="", decision="flag", reasons=[], findings=findings, judge_ok=True)
+
+    a = [detail("t1", ["1"]), detail("t2", ["2"])]
+    b = [detail("t1", ["1", "other"]), detail("t2", [])]
+    result = compare(a, b)
+    assert result["drafts"] == 2
+    assert result["1"] == {"a_flags": 1, "b_flags": 1, "both": 1, "agree": 1.0, "kappa": 1.0}
+    assert result["2"]["a_flags"] == 1 and result["2"]["b_flags"] == 0  # type: ignore[index]

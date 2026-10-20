@@ -124,13 +124,20 @@ def to_findings(output: JudgeOutput, draft: str) -> list[Finding]:
 
 
 class Judge:
-    def __init__(self, client: LLMClient, cache_dir: Path | None = DEFAULT_CACHE) -> None:
+    """`repeat` > 0 keys a separate cache entry, so the same draft can be judged again to measure
+    run-to-run variance (these models don't accept temperature 0)."""
+
+    def __init__(self, client: LLMClient, cache_dir: Path | None = DEFAULT_CACHE, repeat: int = 0) -> None:
         self.client = client
         self.cache_dir = cache_dir
+        self.repeat = repeat
         self.system = SYSTEM.replace("{guidebook}", GUIDEBOOK.read_text())
 
     def _key(self, week: MemberWeek, draft: str) -> str:
-        blob = json.dumps([JUDGE_VERSION, self.client.model, week.model_dump(mode="json"), draft], sort_keys=True)
+        parts: list[object] = [JUDGE_VERSION, self.client.model, week.model_dump(mode="json"), draft]
+        if self.repeat:
+            parts.append(self.repeat)
+        blob = json.dumps(parts, sort_keys=True)
         return hashlib.sha256(blob.encode()).hexdigest()[:24]
 
     def judge(self, week: MemberWeek, draft: str) -> tuple[JudgeOutput | None, list[Finding]]:

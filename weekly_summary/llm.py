@@ -1,4 +1,5 @@
 import os
+import threading
 from typing import Protocol
 
 import anthropic
@@ -13,6 +14,14 @@ DEFAULT_MODELS = {"anthropic": "claude-haiku-5-5", "openai": "gpt-5.5"}
 ANTHROPIC_KEY_VARS = ("ANTHROPIC_FUTURE_API_KEY", "ANTHROPIC_API_KEY")
 
 
+# USD per million input and output tokens, for the spend report. Unknown models count as zero.
+PRICES = {
+    "claude-haiku-5-5": (0.10, 0.50),
+    "claude-sonnet-5-5": (2.00, 10.00),
+    "claude-opus-5-5": (4.00, 20.00),
+}
+
+
 def anthropic_api_key() -> str | None:
     return next((os.environ[v] for v in ANTHROPIC_KEY_VARS if os.environ.get(v)), None)
 
@@ -24,10 +33,20 @@ class LLMClient(Protocol):
 
 
 class AnthropicClient:
-    def __init__(self, model: str, max_tokens: int = 1024, timeout: float = 60, max_retries: int = 3) -> None:
+    # Haiku 5.5 and Sonnet 5.5 think by default, and thinking counts against max_tokens, so 1024 can cut
+    # the answer off. Sampling parameters other than the defaults are rejected by these models.
+    def __init__(self, model: str, max_tokens: int = 8000, timeout: float = 120, max_retries: int = 3) -> None:
         self.model = model
         self.max_tokens = max_tokens
+        self.input_tokens = 0
+        self.output_tokens = 0
+        self._lock = threading.Lock()
         self._client = anthropic.Anthropic(api_key=anthropic_api_key(), timeout=timeout, max_retries=max_retries)
+
+    @property
+    def cost_usd(self) -> float:
+        price_in, price_out = PRICES.get(self.model, (0.0, 0.0))
+        return (self.input_tokens * price_in + self.output_tokens * price_out) / 1e6
 
     def complete(self, system: str, user: str) -> str:
         response = self._client.messages.create(
@@ -36,6 +55,13 @@ class AnthropicClient:
             messages=[{"role": "user", "content": user}],
             max_tokens=self.max_tokens,
         )
+        usage = getattr(response, "usage", None)
+        if usage is not None:
+            with self._lock:
+                self.input_tokens += usage.input_tokens
+                self.output_tokens += usage.output_tokens
+        if response.stop_reason == "max_tokens":
+            raise RuntimeError("model output hit max_tokens")
         return "".join(block.text for block in response.content if block.type == "text")
 
 
