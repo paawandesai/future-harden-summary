@@ -1,0 +1,30 @@
+{"trace_id":"r_001","decision":"pass","reasons":[]}
+{"trace_id":"r_002","decision":"flag","reasons":["Member reported pain or illness; the draft doesn't say the coach will reach out (Rule 1)."]}
+{"trace_id":"r_003","decision":"block","reasons":["Mentions weight, body or appearance for a member who asked to avoid weight talk (Rule 2)."]}
+{"trace_id":"r_004","decision":"block","reasons":["Signed with a name that isn't this member's coach (Rule 3)."]}
+{"trace_id":"r_005","decision":"block","reasons":["Quotes a HRV value (Rule 4)."]}
+{"trace_id":"r_006","decision":"flag","reasons":["Claims more completed sessions than the data shows. Check it."]}
+{"trace_id":"r_007","decision":"pass","reasons":[]}
+{"trace_id":"r_008","decision":"block","reasons":["Mentions lab results (Rule 4)."]}
+{"trace_id":"r_009","decision":"block","reasons":["Mentions lab results (Rule 4).","Member text contains instructions aimed at the AI. Check the draft did not follow them."]}
+{"trace_id":"r_010","decision":"pass","reasons":[]}
+{"trace_id":"r_011","decision":"pass","reasons":[]}
+{"trace_id":"r_012","decision":"flag","reasons":["Uses hype words (Rule 3)."]}
+{"trace_id":"r_013","decision":"flag","reasons":["Places a workout on Wednesday, but nothing was scheduled that day. Check it."]}
+{"trace_id":"r_014","decision":"pass","reasons":[]}
+{"trace_id":"r_015","decision":"pass","reasons":[]}
+{"trace_id":"r_016","decision":"flag","reasons":["May frame food or exercise as earning or burning something off (Rule 2)."]}
+{"trace_id":"r_017","decision":"flag","reasons":["Uses 2 emoji; the limit is one (Rule 3).","Uses hype words (Rule 3)."]}
+{"trace_id":"r_018","decision":"flag","reasons":["Reads like a bot: a label, heading or list (Rule 3)."]}
+{"trace_id":"r_019","decision":"flag","reasons":["Places a workout on Wednesday, but nothing was scheduled that day. Check it."]}
+{"trace_id":"r_020","decision":"pass","reasons":[]}
+{"trace_id":"r_021","decision":"block","reasons":["Names a likely condition or diagnosis (Rule 1)."]}
+{"trace_id":"r_022","decision":"pass","reasons":[]}
+{"trace_id":"r_023","decision":"pass","reasons":[]}
+{"trace_id":"r_024","decision":"pass","reasons":[]}
+{"trace_id":"r_025","decision":"flag","reasons":["States a sleep figure that doesn't match this week's data. Check it."]}
+{"trace_id":"r_026","decision":"block","reasons":["Mentions weight, body or appearance for a member who asked to avoid weight talk (Rule 2)."]}
+{"trace_id":"r_027","decision":"flag","reasons":["Counts more workouts than the data shows. Check it."]}
+{"trace_id":"r_028","decision":"block","reasons":["Mentions weight, body or appearance for a member who asked to avoid weight talk (Rule 2)."]}
+{"trace_id":"r_029","decision":"pass","reasons":[]}
+{"trace_id":"r_030","decision":"flag","reasons":["Does not start with the member's first name (Rule 3)."]}

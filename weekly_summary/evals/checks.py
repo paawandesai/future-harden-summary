@@ -126,8 +126,11 @@ def weight_talk(draft: str, facts: WeekFacts) -> list[Finding]:
     vocab = load_vocab()
     body, target = vocab["rule2.body"], vocab["rule2.target"]
     weight_units = vocab["rule4.biomarker.weight"]
+    lift = vocab["rule2.lift"]
     findings: list[Finding] = []
-    if facts.avoid_weight_talk and (terms := body.find(draft)):
+    # "the deadlift weight", "bar weight": the weight of a lift is a load, not the member's body.
+    loads = re.compile(r"\b(?:" + "|".join(map(re.escape, [*lift.terms, "bar", "bell"])) + r")\s+weights?\b", re.I)
+    if facts.avoid_weight_talk and (terms := body.find(loads.sub("load", draft))):
         findings.append(
             Finding(
                 rule="2",
@@ -137,7 +140,6 @@ def weight_talk(draft: str, facts: WeekFacts) -> list[Finding]:
                 evidence=", ".join(terms),
             )
         )
-    lift = vocab["rule2.lift"]
     for sentence in sentences(draft):
         # A weight unit next to a lift is a load. Body words still count whatever else is there.
         weight_unit = weight_units.hits(sentence) and not lift.hits(sentence)
@@ -391,7 +393,8 @@ def member_signals(draft: str, facts: WeekFacts) -> list[Finding]:
 
 _COUNT_WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7}
 _COUNT_CLAIM = re.compile(
-    r"\b(?:all|every one of)\s+(two|three|four|five|six|seven|\d)\b|\b(two|three|four|five|six|seven|\d)\s+for\s+\2\b"
+    r"\b(?:all|every one of)\s+(two|three|four|five|six|seven|\d)\b(?!\s*(?:km|k|mi|miles?|m|min|minutes?|hours?|rounds?|sets?|reps?)\b)"
+    r"|\b(two|three|four|five|six|seven|\d)\s+for\s+\2\b"
 )
 
 

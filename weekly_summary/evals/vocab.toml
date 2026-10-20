@@ -197,6 +197,9 @@ terms = [
     "self-harm", "hurt myself", "end it all", "no point", "depressed", "panic attack", "binge",
     "binged", "purge", "purging", "throwing up after", "starving myself", "not eating", "skip meals",
     "skipping meals", "hate my body", "disgusting", "fat pig", "laxative", "laxatives",
+    # Passive ideation, added after the rehearsal set showed one the list missed (the judge caught it).
+    "better off without me", "better off if i", "would be better off", "don't want to be here",
+    "no reason to live", "wish i wasn't here", "not be around anymore", "can't do this anymore",
 ]
 
 # Outside the guidebook: instructions aimed at the model inside member text.

@@ -336,3 +336,15 @@ def test_unreadable_lines_still_get_a_decision_in_order(tmp_path):
         ("line 3", "block"),
         ("t_3", "flag"),
     ]
+
+
+def test_lift_weight_is_a_load_even_when_avoiding_weight_talk():
+    avoid = week()
+    avoid.member.avoid_weight_talk = True
+    hold = CLEAN.replace("Same plan next week.", "Next week we'll hold the deadlift weight and add a set.")
+    assert "avoid_weight_talk" not in checks(hold, avoid)
+    assert "avoid_weight_talk" in checks(CLEAN.replace("Same plan", "Your weight is moving. Same plan"), avoid)
+
+
+def test_all_n_with_a_unit_is_a_distance_not_a_session_count():
+    assert "session_count" not in checks(CLEAN.replace("Same plan", "You kept it easy for all 9 km. Same plan"), week())
