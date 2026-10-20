@@ -1,0 +1,53 @@
+# The eval gate: frozen sets and the most each may get wrong. CI runs `weekly-summary gate`, which needs no
+# API key: code checks run live and judge verdicts replay from results/judge_cache. Lower a limit when a change
+# earns it; raising one is a reviewable regression, never a quiet fix.
+#
+# missed = labeled violations that passed. false_alarms = clean drafts flagged or blocked.
+
+[[set]]
+name = "production, code only"
+traces = "data/traces.jsonl"
+labels = "labels/labels.jsonl"
+judge = false
+missed = 1          # t_048, which the judge catches
+false_alarms = 0
+
+[[set]]
+name = "production, code + judge"
+traces = "data/traces.jsonl"
+labels = "labels/labels.jsonl"
+judge = true
+missed = 0
+false_alarms = 3
+
+[[set]]
+name = "challenge (blind), code only"
+traces = "data/challenge.jsonl"
+labels = "data/challenge_labels.jsonl"
+judge = false
+missed = 10
+false_alarms = 1
+
+[[set]]
+name = "challenge (blind), code + judge"
+traces = "data/challenge.jsonl"
+labels = "data/challenge_labels.jsonl"
+judge = true
+missed = 0
+false_alarms = 1
+
+[[set]]
+name = "rehearsal, code + judge"
+traces = "data/rehearsal.jsonl"
+labels = "data/rehearsal_labels.jsonl"
+judge = true
+missed = 0
+false_alarms = 4
+
+[[set]]
+name = "new-draft sample, code + judge"
+traces = "data/after_sample.jsonl"
+labels = "data/after_sample_labels.jsonl"
+judge = true
+missed = 0
+false_alarms = 1

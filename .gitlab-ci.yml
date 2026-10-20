@@ -120,6 +120,30 @@ build:
     expire_in: 1 day
     paths: [dist/]
 
+# The eval gate: frozen labeled sets must not get more wrong than weekly_summary/evals/gate.toml allows.
+# No API key: the judge replays results/judge_cache, and a cache miss fails the job.
+eval-gate:
+  stage: verify
+  needs: []
+  cache: *uv-cache
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - changes:
+        paths:
+          - "**/*.py"
+          - "weekly_summary/**/*.toml"
+          - "data/**"
+          - "labels/**"
+          - "results/judge_cache/**"
+          - pyproject.toml
+          - uv.lock
+          - .gitlab-ci.yml
+        compare_to: refs/heads/main
+  script:
+    - uv run --no-default-groups weekly-summary gate
+    - *peak-mem
+
 # Off the push path: runs on the scheduled pipeline, or by hand from an MR. Heavy lane.
 dependency-audit:
   stage: scheduled

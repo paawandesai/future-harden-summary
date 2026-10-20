@@ -167,6 +167,8 @@ def main(argv: list[str] | None = None) -> None:
     evaluate.add_argument("--labels", type=Path, default=DEFAULT_LABELS)
     evaluate.add_argument("--out", type=Path, help="write the full report as JSON")
 
+    commands.add_parser("gate", help="fail if the frozen labeled sets get more wrong than evals/gate.toml allows")
+
     comp = commands.add_parser("compare", help="two runs on the same traces: what got better or worse")
     comp.add_argument("before", type=Path, help="details file of the baseline run")
     comp.add_argument("after", type=Path, help="details file of the changed run")
@@ -188,6 +190,12 @@ def main(argv: list[str] | None = None) -> None:
             args.out.write_text(json.dumps(result, indent=2) + "\n")
         print(crosscheck.markdown(result, *args.names))
         return
+    if args.command == "gate":
+        from weekly_summary.evals.gate import run_gate
+
+        ok, lines = run_gate()
+        print("\n".join(lines))
+        sys.exit(0 if ok else 1)
     if args.command == "compare":
         labels = load_labels(args.labels) if args.labels and args.labels.exists() else None
         result = compare(load_details(args.before), load_details(args.after), labels)
