@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from weekly_summary.data import DEFAULT_TRACES, load_traces, read_traces
-from weekly_summary.evals import crosscheck
+from weekly_summary.evals import crosscheck, view
 from weekly_summary.evals.judge import CONFIRM_MODEL, DEFAULT_CACHE, JUDGE_VERSION, Judge
 from weekly_summary.evals.report import compare, compare_markdown, load_details, load_labels, markdown, summarize
 from weekly_summary.generate import generate_summary
@@ -114,6 +114,9 @@ def _pipeline(args: argparse.Namespace, items: list[Trace | tuple[str, str]]) ->
         with args.details.open("w") as f:
             for d in details:
                 f.write(d.model_dump_json() + "\n")
+    if args.html:
+        args.html.parent.mkdir(parents=True, exist_ok=True)
+        args.html.write_text(view.render(details, {t.trace_id: t for t in traces}))
     counts = {k: sum(d.decision == k for d in details) for k in ("pass", "flag", "block")}
     judges = [j for j in (judge, judge.confirm if judge else None) if j is not None]
     spent = [*budgets.values(), *(j.client for j in judges if isinstance(j.client, CallBudget))]
@@ -143,6 +146,7 @@ def main(argv: list[str] | None = None) -> None:
     pipeline.add_argument("traces_path", type=Path, nargs="?", help="traces JSONL (default: --traces)")
     pipeline.add_argument("--out", type=Path, default=Path("results/decisions.jsonl"))
     pipeline.add_argument("--details", type=Path, help="also write findings and drafts here")
+    pipeline.add_argument("--html", type=Path, help="also write a one-page coach view of the run here")
     skip = pipeline.add_mutually_exclusive_group()
     skip.add_argument("--no-generate", action="store_true", help="decide the drafts already in the traces file")
     skip.add_argument("--code-only", action="store_true", help="like --no-generate, without the LLM judge")
@@ -167,6 +171,10 @@ def main(argv: list[str] | None = None) -> None:
     evaluate.add_argument("--labels", type=Path, default=DEFAULT_LABELS)
     evaluate.add_argument("--out", type=Path, help="write the full report as JSON")
 
+    page = commands.add_parser("view", help="one-page HTML coach view of a details file")
+    page.add_argument("details", type=Path)
+    page.add_argument("--out", type=Path, default=Path("review.html"))
+
     commands.add_parser("gate", help="fail if the frozen labeled sets get more wrong than evals/gate.toml allows")
 
     comp = commands.add_parser("compare", help="two runs on the same traces: what got better or worse")
@@ -189,6 +197,11 @@ def main(argv: list[str] | None = None) -> None:
             args.out.parent.mkdir(parents=True, exist_ok=True)
             args.out.write_text(json.dumps(result, indent=2) + "\n")
         print(crosscheck.markdown(result, *args.names))
+        return
+    if args.command == "view":
+        by_id = {t.trace_id: t for t in load_traces(args.traces)} if args.traces.exists() else {}
+        args.out.write_text(view.render(load_details(args.details), by_id))
+        print(args.out)
         return
     if args.command == "gate":
         from weekly_summary.evals.gate import run_gate

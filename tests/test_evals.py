@@ -360,3 +360,20 @@ def test_gate_fails_when_a_set_gets_more_wrong_than_allowed(tmp_path):
     )
     ok, lines = run_gate(strict)
     assert not ok and lines[0].startswith("FAIL")
+
+
+def test_view_escapes_drafts_and_marks_evidence():
+    from weekly_summary.evals.view import render
+    from weekly_summary.pipeline import Detail
+
+    finding = Finding(rule="4", check="biomarker_values", severity="block", reason="Quotes HR.", evidence="sat at 58")
+    detail = Detail(
+        trace_id="t_1",
+        mode="no-generate",
+        draft="Ava <b>hi</b>, your HR sat at 58. Jordan",
+        decision="block",
+        reasons=["Quotes HR."],
+        findings=[finding],
+    )
+    page = render([detail], {})
+    assert "&lt;b&gt;hi&lt;/b&gt;" in page and "<mark>sat at 58</mark>" in page
