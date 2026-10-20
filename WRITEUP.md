@@ -59,12 +59,20 @@ Why not keep one prompt: Haiku on the old prompt broke a rule in **60 of 60** dr
 ## 4. Guardrail policy
 
 - **Block** (code only, so blocks are reproducible): quoted biomarker, lab mention, weight talk under `avoid_weight_talk`, weight target, diagnosis, treatment for reported pain, training advice about reported pain, a different coach's name, and no draft produced. The coach sees why and regenerates or writes the summary. The member never silently gets nothing that week.
-- **Flag** (one-line reason, up to three): every judge finding, pain reported without "I'll reach out", guilt, hype, length, emoji, bot voice, not specific, figures or days the data contradicts, distress or injection in member text, and any judge failure.
+- **Flag** (one-line reason, up to three): every judge finding (a judge-only "other" finding must be confirmed by Sonnet), pain reported without "I'll reach out", guilt, hype, length, emoji, bot voice, not specific, figures or days the data contradicts, distress or injection in member text, and any judge failure.
 - **Pass:** nothing found.
 
-**Expected flag rate: about 12%, in a range of 8–18%.** Across 8 independent generations of the 60 traces (3 here plus 5 in [results/DRY_RUN_AND_VARIANCE.md](results/DRY_RUN_AND_VARIANCE.md)), 5 to 11 drafts were flagged per run and none were blocked. Before two generic false-positive fixes (below), the same 8 runs flagged 12–22%, about 16%. Most flags are calendar or figure mismatches, which a coach confirms in seconds. Coaches will accept this rate because it is about one draft in eight, each reason says what to check, and on the challenge set code + Haiku let no violation through.
+**Expected flag rate: about 8%, in a range of 3–12%.** Across 8 independent generations of the 60 traces (3 here plus 5 in [results/DRY_RUN_AND_VARIANCE.md](results/DRY_RUN_AND_VARIANCE.md)), 2 to 7 drafts were flagged per run and none were blocked. Most flags are calendar or figure mismatches, which a coach confirms in seconds. Coaches will accept this rate because it is about one draft in twelve, each reason says what to check, and on the frozen sets no labeled violation passes.
 
-**Measured flag precision on new drafts is low.** A blind hand-labeled sample of 30 new drafts ([data/after_sample_labels.jsonl](data/after_sample_labels.jsonl)) had one real violation (t_049, Rule 2), and it was flagged. The other 4 flags were clean drafts (2 of them borderline), all from judge-only "other" findings. So 1 of 5 flags was real. These labels are agent-written and not yet reviewed by a person.
+**Judge-only "other" findings need a second judge.** When only the Haiku judge says a draft contradicts the week's data and no code check agrees, Sonnet (`claude-sonnet-5-5`) judges the draft too, and the flag stands unless Sonnet cleanly says no. If Sonnet fails, the flag stays. Without this step, a blind hand-labeled sample of 30 new drafts ([data/after_sample_labels.jsonl](data/after_sample_labels.jsonl)) got 5 flags and only 1 was real (t_049, Rule 2). The other 4 were clean drafts, all from judge-only "other" findings. The same 8 runs flagged 8–18%, and 12–22% before the false-positive fixes below. The sample labels are agent-written and not yet reviewed by a person.
+
+| Set | Policy | Labeled violations that passed | Clean drafts flagged |
+|---|---|---|---|
+| Production 60 | Haiku only / + Sonnet confirm / drop these flags | 0 / 0 / 1 | 6 / 3 / 2 |
+| Challenge 40 | Haiku only / + Sonnet confirm / drop these flags | 0 / 0 / 2 | 3 / 1 / 1 |
+| New-draft sample 30 | Haiku only / + Sonnet confirm | 0 / 0 | 4 / 1 (borderline) |
+
+Sonnet confirmation costs about $0.01–0.07 per 60 traces, since it only runs on the few drafts with such a finding.
 
 **Two false positives fixed generically**, with no recall change on the frozen challenge set (code + Haiku still lets 0 of 30 violations through; code alone still misses 9): a weight unit in a sentence that names a lift ("your squat went up 10 lb") is no longer read as a weight target, and earning words ("earned it") count only in a sentence that names food. Advice to push through pain now ignores negated forms ("rather than pushing through"), and "made up" or "got lost" counts as a missed workout in the calendar check.
 
@@ -76,14 +84,14 @@ Same 60 inputs, same checks, Haiku judge. "After" is 3 independent generations p
 |---|---|---|---|---|---|---|---|
 | Before: production drafts (Sonnet 4.5 / GPT-4.1, prompt v3) | 29–31 | 8–10 | 6 | 7 | 7 | 11–14 | 29–31 / 12–14 / 17 |
 | Old prompt v3 on Haiku | 60 | 16 | 4 | 21 | 60 | 16 | 0 / 0 / 60 |
-| **New workflow on Haiku, 3 runs** | **5, 7, 5** | 0, 2, 2 | 1, 1, 0 | 0 | 0 | 4, 4, 4 | 55 / 5 / 0, 53 / 7 / 0, 55 / 5 / 0 |
+| **New workflow on Haiku, 3 runs** | **5, 7, 5** | 0, 2, 2 | 1, 1, 0 | 0 | 0 | 4, 4, 4 | 55 / 5 / 0, 53 / 7 / 0, 55 / 5 / 0 (58 / 2, 56 / 4, 57 / 3 with Sonnet confirm) |
 | The same, held-out 20 only | 4, 3, 3 | 0, 1, 1 | 1, 0, 0 | 0 | 0 | 3, 2, 3 | 0 blocks |
 
 Every new draft names something specific from the week, and mean length went from 78 words to 88. The cost of 3 runs plus the ablation was about $0.25. The "after" numbers come from the evals. A blind-labeled sample of 30 new drafts found 1 violation, which was caught (section 4).
 
 ## 6. Next steps, in priority order
 
-1. Raise flag precision on new drafts: confirm judge-only "other" findings with a second model before flagging, and have a person review the 30 after-sample labels.
+1. Have a person review the 30 new-draft labels, then label more new drafts, since flag precision there rests on 30 drafts.
 2. Track the flag rate per coach in production, and cap or merge low-value flags (calendar mismatches) if coaches skip them.
 3. Move Rule 2 judging to a stronger model if more labels confirm the two Haiku misses (t_008, t_048). Sonnet caught both.
 4. Grow the challenge set with real coach edits as labels, and refresh it each quarter so the checks don't overfit.

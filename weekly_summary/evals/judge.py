@@ -17,6 +17,7 @@ from weekly_summary.llm import LLMClient
 from weekly_summary.models import MemberWeek
 
 JUDGE_VERSION = "j1"
+CONFIRM_MODEL = "claude-sonnet-5-5"
 GUIDEBOOK = Path(__file__).resolve().parents[2] / "GUIDEBOOK.md"
 DEFAULT_CACHE = Path(__file__).resolve().parents[2] / "results" / "judge_cache"
 
@@ -125,12 +126,22 @@ def to_findings(output: JudgeOutput, draft: str) -> list[Finding]:
 
 class Judge:
     """`repeat` > 0 keys a separate cache entry, so the same draft can be judged again to measure
-    run-to-run variance (these models don't accept temperature 0)."""
+    run-to-run variance (these models don't accept temperature 0).
 
-    def __init__(self, client: LLMClient, cache_dir: Path | None = DEFAULT_CACHE, repeat: int = 0) -> None:
+    `confirm` is a second judge, usually a stronger model, that must agree before an "other" finding no
+    code check backs stands. Alone, those findings were mostly on clean drafts (WRITEUP.md, section 4)."""
+
+    def __init__(
+        self,
+        client: LLMClient,
+        cache_dir: Path | None = DEFAULT_CACHE,
+        repeat: int = 0,
+        confirm: Judge | None = None,
+    ) -> None:
         self.client = client
         self.cache_dir = cache_dir
         self.repeat = repeat
+        self.confirm = confirm
         self.system = SYSTEM.replace("{guidebook}", GUIDEBOOK.read_text())
 
     def _key(self, week: MemberWeek, draft: str) -> str:

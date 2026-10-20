@@ -72,7 +72,16 @@ def evaluate(week: MemberWeek, draft: str, judge: Judge | None) -> tuple[list[Fi
     if judge is None:
         return findings, None
     output, judged = judge.judge(week, draft)
+    if judge.confirm and output is not None and _unbacked_other(findings, judged):
+        second, _ = judge.confirm.judge(week, draft)
+        # A failed confirmation keeps the flag: only a clean "no" from the second judge removes it.
+        if second is not None and not any(v.rule == "other" and v.violated for v in second.verdicts):
+            judged = [f for f in judged if f.rule != "other"]
     return findings + judged, output is not None
+
+
+def _unbacked_other(code: list[Finding], judged: list[Finding]) -> bool:
+    return any(f.rule == "other" for f in judged) and not any(f.rule == "other" for f in code)
 
 
 def process(

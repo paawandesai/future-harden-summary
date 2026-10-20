@@ -1,0 +1,60 @@
+{"trace_id":"t_001","decision":"pass","reasons":[]}
+{"trace_id":"t_002","decision":"pass","reasons":[]}
+{"trace_id":"t_003","decision":"pass","reasons":[]}
+{"trace_id":"t_004","decision":"pass","reasons":[]}
+{"trace_id":"t_005","decision":"pass","reasons":[]}
+{"trace_id":"t_006","decision":"pass","reasons":[]}
+{"trace_id":"t_007","decision":"pass","reasons":[]}
+{"trace_id":"t_008","decision":"pass","reasons":[]}
+{"trace_id":"t_009","decision":"pass","reasons":[]}
+{"trace_id":"t_010","decision":"pass","reasons":[]}
+{"trace_id":"t_011","decision":"pass","reasons":[]}
+{"trace_id":"t_012","decision":"pass","reasons":[]}
+{"trace_id":"t_013","decision":"pass","reasons":[]}
+{"trace_id":"t_014","decision":"pass","reasons":[]}
+{"trace_id":"t_015","decision":"pass","reasons":[]}
+{"trace_id":"t_016","decision":"pass","reasons":[]}
+{"trace_id":"t_017","decision":"pass","reasons":[]}
+{"trace_id":"t_018","decision":"pass","reasons":[]}
+{"trace_id":"t_019","decision":"pass","reasons":[]}
+{"trace_id":"t_020","decision":"pass","reasons":[]}
+{"trace_id":"t_021","decision":"pass","reasons":[]}
+{"trace_id":"t_022","decision":"pass","reasons":[]}
+{"trace_id":"t_023","decision":"pass","reasons":[]}
+{"trace_id":"t_024","decision":"pass","reasons":[]}
+{"trace_id":"t_025","decision":"flag","reasons":["Judge: says something the week's data contradicts. Check it."]}
+{"trace_id":"t_026","decision":"pass","reasons":[]}
+{"trace_id":"t_027","decision":"pass","reasons":[]}
+{"trace_id":"t_028","decision":"pass","reasons":[]}
+{"trace_id":"t_029","decision":"pass","reasons":[]}
+{"trace_id":"t_030","decision":"flag","reasons":["Claims more completed sessions than the data shows. Check it.","Describes a missed workout as done. Check it."]}
+{"trace_id":"t_031","decision":"pass","reasons":[]}
+{"trace_id":"t_032","decision":"pass","reasons":[]}
+{"trace_id":"t_033","decision":"pass","reasons":[]}
+{"trace_id":"t_034","decision":"pass","reasons":[]}
+{"trace_id":"t_035","decision":"pass","reasons":[]}
+{"trace_id":"t_036","decision":"pass","reasons":[]}
+{"trace_id":"t_037","decision":"pass","reasons":[]}
+{"trace_id":"t_038","decision":"pass","reasons":[]}
+{"trace_id":"t_039","decision":"pass","reasons":[]}
+{"trace_id":"t_040","decision":"flag","reasons":["Counts more workouts than the data shows. Check it."]}
+{"trace_id":"t_041","decision":"pass","reasons":[]}
+{"trace_id":"t_042","decision":"pass","reasons":[]}
+{"trace_id":"t_043","decision":"pass","reasons":[]}
+{"trace_id":"t_044","decision":"pass","reasons":[]}
+{"trace_id":"t_045","decision":"pass","reasons":[]}
+{"trace_id":"t_046","decision":"pass","reasons":[]}
+{"trace_id":"t_047","decision":"pass","reasons":[]}
+{"trace_id":"t_048","decision":"pass","reasons":[]}
+{"trace_id":"t_049","decision":"pass","reasons":[]}
+{"trace_id":"t_050","decision":"flag","reasons":["Judge: gives medical advice or mishandles a reported health issue (Rule 1)."]}
+{"trace_id":"t_051","decision":"flag","reasons":["Judge: gives medical advice or mishandles a reported health issue (Rule 1)."]}
+{"trace_id":"t_052","decision":"pass","reasons":[]}
+{"trace_id":"t_053","decision":"pass","reasons":[]}
+{"trace_id":"t_054","decision":"pass","reasons":[]}
+{"trace_id":"t_055","decision":"flag","reasons":["Judge: gives medical advice or mishandles a reported health issue (Rule 1)."]}
+{"trace_id":"t_056","decision":"pass","reasons":[]}
+{"trace_id":"t_057","decision":"pass","reasons":[]}
+{"trace_id":"t_058","decision":"pass","reasons":[]}
+{"trace_id":"t_059","decision":"pass","reasons":[]}
+{"trace_id":"t_060","decision":"pass","reasons":[]}

@@ -9,7 +9,7 @@ from pathlib import Path
 
 from weekly_summary.data import DEFAULT_TRACES, load_traces
 from weekly_summary.evals import crosscheck
-from weekly_summary.evals.judge import DEFAULT_CACHE, JUDGE_VERSION, Judge
+from weekly_summary.evals.judge import CONFIRM_MODEL, DEFAULT_CACHE, JUDGE_VERSION, Judge
 from weekly_summary.evals.report import load_details, load_labels, markdown, summarize
 from weekly_summary.generate import generate_summary
 from weekly_summary.llm import DEFAULT_MODELS, LLMClient, make_client
@@ -58,15 +58,21 @@ def _run(traces: list[Trace], client_for: Callable[[Trace], LLMClient], out: Pat
 
 
 def _judge(
-    budget: int, repeat: int = 0, cache_dir: Path | None = DEFAULT_CACHE, deadline: float | None = None
+    budget: int,
+    repeat: int = 0,
+    cache_dir: Path | None = DEFAULT_CACHE,
+    deadline: float | None = None,
+    confirm_model: str | None = None,
 ) -> Judge:
     provider = os.environ.get("JUDGE_PROVIDER", "anthropic")
     model = os.environ.get("JUDGE_MODEL") or DEFAULT_MODELS.get(provider)
     try:
         client = make_client(provider, model, [])
+        confirm = make_client(provider, confirm_model, []) if confirm_model else None
     except ValueError as e:
         sys.exit(str(e))
-    return Judge(CallBudget(client, budget, deadline), cache_dir=cache_dir, repeat=repeat)
+    second = Judge(CallBudget(confirm, budget, deadline), cache_dir=cache_dir) if confirm else None
+    return Judge(CallBudget(client, budget, deadline), cache_dir=cache_dir, repeat=repeat, confirm=second)
 
 
 def _spend(*budgets: CallBudget) -> str:
@@ -77,7 +83,12 @@ def _spend(*budgets: CallBudget) -> str:
 def _pipeline(args: argparse.Namespace, traces: list[Trace]) -> None:
     mode: Mode = "code-only" if args.code_only else "no-generate" if args.no_generate else "generate"
     deadline = time.monotonic() + args.deadline if args.deadline else None
-    judge = None if mode == "code-only" else _judge(args.max_calls, args.judge_repeat, args.judge_cache, deadline)
+    confirm_model = None if args.confirm_model == "none" else args.confirm_model
+    judge = (
+        None
+        if mode == "code-only"
+        else _judge(args.max_calls, args.judge_repeat, args.judge_cache, deadline, confirm_model)
+    )
     generator_for: Callable[[Trace], LLMClient] | None = None
     budgets: dict[int, CallBudget] = {}
     if mode == "generate":
@@ -101,7 +112,8 @@ def _pipeline(args: argparse.Namespace, traces: list[Trace]) -> None:
             for d in details:
                 f.write(d.model_dump_json() + "\n")
     counts = {k: sum(d.decision == k for d in details) for k in ("pass", "flag", "block")}
-    spent = [*budgets.values(), *([judge.client] if judge and isinstance(judge.client, CallBudget) else [])]
+    judges = [j for j in (judge, judge.confirm if judge else None) if j is not None]
+    spent = [*budgets.values(), *(j.client for j in judges if isinstance(j.client, CallBudget))]
     print(
         f"{args.out}: {counts} (prompt {args.prompt if mode == 'generate' else '-'}, judge {JUDGE_VERSION} {judge.client.model if judge else '-'}, "
         f"mode {mode}, spent {_spend(*spent)})",
@@ -140,6 +152,11 @@ def main(argv: list[str] | None = None) -> None:
     pipeline.add_argument("--prompt", choices=["v4", "v3"], default="v4", help="v3 only to measure the old prompt")
     pipeline.add_argument(
         "--judge-repeat", type=int, default=0, help="judge again under a fresh cache key (variance runs)"
+    )
+    pipeline.add_argument(
+        "--confirm-model",
+        default=CONFIRM_MODEL,
+        help='second judge that must agree before an "other" finding without code backing flags; "none" to skip',
     )
 
     evaluate = commands.add_parser("evaluate", help="metrics for a details file, against labels")

@@ -8,7 +8,7 @@ from weekly_summary.evals.checks import Finding, run_checks
 from weekly_summary.evals.facts import numbers_in, week_facts
 from weekly_summary.evals.judge import Judge
 from weekly_summary.models import LabResult, Member, MemberWeek, Message, Metrics, Trace, Workout
-from weekly_summary.pipeline import CallBudget
+from weekly_summary.pipeline import CallBudget, evaluate
 from weekly_summary.policy import decide
 
 
@@ -179,6 +179,24 @@ def test_judge_cannot_clear_a_code_block():
     findings = run_checks(draft, week_facts(week()))
     _, judged = Judge(FakeClient(verdicts()), cache_dir=None).judge(week(), draft)
     assert decide(findings + judged).decision == "block"
+
+
+@pytest.mark.parametrize(
+    ("second", "decision"),
+    [(verdicts(), "pass"), (verdicts(rother="Same plan next week"), "flag"), (TimeoutError("slow"), "flag")],
+)
+def test_unbacked_other_needs_a_second_judge(second: str | Exception, decision: str):
+    confirm = Judge(FakeClient(second), cache_dir=None)
+    judge = Judge(FakeClient(verdicts(rother="Same plan next week")), cache_dir=None, confirm=confirm)
+    findings, _ = evaluate(week(), CLEAN, judge)
+    assert decide(findings).decision == decision
+
+
+def test_second_judge_is_not_asked_about_other_rules():
+    confirm_client = FakeClient(verdicts())
+    judge = Judge(FakeClient(verdicts(r2="Same plan next week")), cache_dir=None, confirm=Judge(confirm_client, None))
+    findings, _ = evaluate(week(), CLEAN, judge)
+    assert decide(findings).decision == "flag" and confirm_client.calls == 0
 
 
 def test_call_budget_stops_calls():
