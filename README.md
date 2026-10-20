@@ -12,6 +12,15 @@ You need [uv](https://docs.astral.sh/uv/). It installs Python 3.14 for you.
 uv sync
 ```
 
+Install the git hooks once per clone:
+
+```
+uv run pre-commit install
+```
+
+On commit they format and lint the staged Python files (under a second). On push they run pyright and the
+test suite (a few seconds). CI runs the same checks, so the hooks only save you a round trip.
+
 Set a provider and an API key:
 
 ```

@@ -12,8 +12,18 @@ dependencies = [
 [project.scripts]
 weekly-summary = "weekly_summary.__main__:main"
 
+# Split by CI job so each job installs only what it runs. `uv sync` (the dev group) installs all of them.
+# pyright[nodejs] takes Node from a locked wheel; the Node pyright downloads by default fails in slim images.
 [dependency-groups]
-dev = ["pytest>=8", "ruff>=0.14", "pyright>=1.1.400"]
+lint = ["ruff>=0.14"]
+test = ["pytest>=8"]
+typecheck = ["pyright[nodejs]>=1.1.400"]
+dev = [
+    "pre-commit>=4",
+    { include-group = "lint" },
+    { include-group = "test" },
+    { include-group = "typecheck" },
+]
 
 [build-system]
 requires = ["hatchling"]
