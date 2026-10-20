@@ -7,14 +7,14 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 
-from weekly_summary.data import DEFAULT_TRACES, load_traces
+from weekly_summary.data import DEFAULT_TRACES, load_traces, read_traces
 from weekly_summary.evals import crosscheck
 from weekly_summary.evals.judge import CONFIRM_MODEL, DEFAULT_CACHE, JUDGE_VERSION, Judge
 from weekly_summary.evals.report import compare, compare_markdown, load_details, load_labels, markdown, summarize
 from weekly_summary.generate import generate_summary
 from weekly_summary.llm import DEFAULT_MODELS, LLMClient, make_client
 from weekly_summary.models import Trace
-from weekly_summary.pipeline import CallBudget, Mode, Result, run_pipeline
+from weekly_summary.pipeline import CallBudget, Mode, Result, run_pipeline, unreadable_detail
 from weekly_summary.prompt import PROMPT_VERSION
 
 DEFAULT_LABELS = DEFAULT_TRACES.parent.parent / "labels" / "labels.jsonl"
@@ -80,7 +80,8 @@ def _spend(*budgets: CallBudget) -> str:
     return f"${total:.4f}"
 
 
-def _pipeline(args: argparse.Namespace, traces: list[Trace]) -> None:
+def _pipeline(args: argparse.Namespace, items: list[Trace | tuple[str, str]]) -> None:
+    traces = [item for item in items if isinstance(item, Trace)]
     mode: Mode = "code-only" if args.code_only else "no-generate" if args.no_generate else "generate"
     deadline = time.monotonic() + args.deadline if args.deadline else None
     confirm_model = None if args.confirm_model == "none" else args.confirm_model
@@ -102,6 +103,8 @@ def _pipeline(args: argparse.Namespace, traces: list[Trace]) -> None:
         generator_for = budgeted
 
     details = run_pipeline(traces, mode, generator_for, judge, workers=args.workers, prompt=args.prompt)
+    done = iter(details)
+    details = [next(done) if isinstance(item, Trace) else unreadable_detail(*item, mode) for item in items]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w") as f:
         for d in details:
@@ -201,8 +204,9 @@ def main(argv: list[str] | None = None) -> None:
             args.out.write_text(json.dumps(report, indent=2) + "\n")
         print(markdown(report))
         return
-    if args.command == "pipeline" and args.traces_path:
-        args.traces = args.traces_path
+    if args.command == "pipeline":
+        _pipeline(args, read_traces(args.traces_path or args.traces))
+        return
     traces = load_traces(args.traces)
 
     match args.command:
@@ -214,8 +218,6 @@ def main(argv: list[str] | None = None) -> None:
         case "generate":
             trace = _find(traces, args.trace_id)
             print(generate_summary(trace.input, _client_for(traces)(trace)))
-        case "pipeline":
-            _pipeline(args, traces)
         case "run":
             out = args.out or Path("runs") / f"{datetime.now(UTC):%Y%m%dT%H%M%SZ}.jsonl"
             _run(traces[: args.limit], _client_for(traces), out)

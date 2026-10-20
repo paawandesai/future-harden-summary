@@ -306,11 +306,33 @@ def test_lift_loads_and_negations_are_not_violations():
 def test_compare_says_worse_when_a_labeled_violation_starts_passing():
     from weekly_summary.evals.report import Label, compare
     from weekly_summary.pipeline import Detail
+    from weekly_summary.policy import Decision
 
-    def detail(decision: str) -> Detail:
+    def detail(decision: Decision) -> Detail:
         return Detail(trace_id="t_1", mode="no-generate", draft="", decision=decision, reasons=[], findings=[])
 
     label = Label(trace_id="t_1", split="dev", rule1=True, rule2=False, rule3=False, rule4=False, other=False)
     result = compare([detail("flag")], [detail("pass")], {"t_1": label})
     assert result["worse"] and result["newly_missed"] == ["t_1"]
     assert not compare([detail("pass")], [detail("flag")], {"t_1": label})["worse"]
+
+
+def test_unreadable_lines_still_get_a_decision_in_order(tmp_path):
+    good = Trace(
+        trace_id="t_0", created_at=datetime(2026, 9, 14), prompt_version="v3", model="m", input=week(), output=CLEAN
+    )
+    no_draft = good.model_dump(mode="json", exclude={"output", "model"}) | {"trace_id": "t_3"}
+    path, out = tmp_path / "traces.jsonl", tmp_path / "out.jsonl"
+    path.write_text(
+        good.model_dump_json() + '\n{"trace_id": "t_1", "input": {}}\nnot json\n' + json.dumps(no_draft) + "\n"
+    )
+
+    main(["pipeline", str(path), "--code-only", "--out", str(out)])
+
+    rows = [json.loads(line) for line in out.read_text().splitlines()]
+    assert [(r["trace_id"], r["decision"]) for r in rows] == [
+        ("t_0", "pass"),
+        ("t_1", "block"),
+        ("line 3", "block"),
+        ("t_3", "flag"),
+    ]

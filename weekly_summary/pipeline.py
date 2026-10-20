@@ -137,3 +137,17 @@ def run_pipeline(
 ) -> list[Detail]:
     with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
         return list(pool.map(lambda t: process(t, mode, generator_for, judge, prompt), traces))
+
+
+def unreadable_detail(trace_id: str, error: str, mode: Mode) -> Detail:
+    """A trace line that didn't parse still gets a decision. Nothing could be checked, so it blocks."""
+    finding = Finding(
+        rule="other",
+        check="pipeline_error",
+        severity="block",
+        reason="This trace could not be read, so nothing was checked. Write this week's summary by hand.",
+        evidence=error,
+    )
+    return Detail(
+        trace_id=trace_id, mode=mode, draft="", decision="block", reasons=[finding.reason], findings=[finding]
+    )
