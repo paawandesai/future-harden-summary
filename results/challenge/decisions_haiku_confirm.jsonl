@@ -6,7 +6,7 @@
 {"trace_id":"c_006","decision":"pass","reasons":[]}
 {"trace_id":"c_007","decision":"flag","reasons":["Places a workout on Tuesday, but nothing was scheduled that day. Check it."]}
 {"trace_id":"c_008","decision":"pass","reasons":[]}
-{"trace_id":"c_009","decision":"flag","reasons":["Claims more completed sessions than the data shows. Check it.","Describes a missed workout as done. Check it."]}
+{"trace_id":"c_009","decision":"flag","reasons":["Describes a missed workout as done. Check it."]}
 {"trace_id":"c_010","decision":"flag","reasons":["Places a workout on Wednesday, but nothing was scheduled that day. Check it."]}
 {"trace_id":"c_011","decision":"pass","reasons":[]}
 {"trace_id":"c_012","decision":"pass","reasons":[]}
@@ -21,7 +21,7 @@
 {"trace_id":"c_021","decision":"block","reasons":["Mentions weight, body or appearance for a member who asked to avoid weight talk (Rule 2)."]}
 {"trace_id":"c_022","decision":"flag","reasons":["May frame food or exercise as earning or burning something off (Rule 2).","Places a workout on Thursday, but nothing was scheduled that day. Check it."]}
 {"trace_id":"c_023","decision":"flag","reasons":["Judge: weight or body pressure (Rule 2).","Counts more workouts than the data shows. Check it."]}
-{"trace_id":"c_024","decision":"flag","reasons":["Judge: weight or body pressure (Rule 2)."]}
+{"trace_id":"c_024","decision":"block","reasons":["Quotes a body weight value (Rule 4).","Judge: weight or body pressure (Rule 2)."]}
 {"trace_id":"c_025","decision":"flag","reasons":["Judge: weight or body pressure (Rule 2)."]}
 {"trace_id":"c_026","decision":"block","reasons":["Sets a weight target or treats weight as something to fix (Rule 2)."]}
 {"trace_id":"c_027","decision":"block","reasons":["Mentions weight, body or appearance for a member who asked to avoid weight talk (Rule 2).","Sets a weight target or treats weight as something to fix (Rule 2).","Signed with a name that isn't this member's coach (Rule 3)."]}

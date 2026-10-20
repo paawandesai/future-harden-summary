@@ -35,6 +35,9 @@ All three are generic and leave every decision on the production and challenge s
   here"). The judge had already caught r_010, but code now flags it too.
 
 After these changes, code + judge lets 0 violations through and flags 4 of 11 clean drafts. Code alone misses 2.
+
+The full command below ran with prompt v4. The shipped prompt v5 on the same 30 traces gives 25 pass, 5 flag and
+0 block (`results/v5/decisions_rehearsal.jsonl`). The labels were reviewed by Paawan on 2026-10-20.
 This set is no longer blind, so the blind row above is the number to quote.
 
 ## The full live command (generate mode)

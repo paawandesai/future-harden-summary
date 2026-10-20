@@ -393,3 +393,18 @@ def test_goals_and_deferred_or_skipped_workouts_are_not_claims():
             "Same plan", line + " Same plan"
         )
         assert "calendar" not in checks(draft, skipped)
+
+
+def test_exact_body_weight_blocks_without_a_weight_word_but_lift_loads_do_not():
+    w = week()  # weight 151.0 this week
+    assert "biomarker_value" in checks(CLEAN.replace("Same plan", "That pushed you up to 151 this week. Same plan"), w)
+    assert "biomarker_value" not in checks(CLEAN.replace("Same plan", "You squatted 151 for reps. Same plan"), w)
+    assert "biomarker_value" not in checks(CLEAN.replace("Same plan", "That was 151 minutes total. Same plan"), w)
+
+
+def test_lab_result_judged_in_other_words_blocks_when_labs_exist():
+    judged = CLEAN.replace("Same plan", "Results from your clinic visit came back a little low. Same plan")
+    assert "lab_mention" in checks(judged, week(labs=True))
+    assert "lab_mention" not in checks(
+        judged.replace("clinic visit came back a little low", "week look great"), week(labs=True)
+    )

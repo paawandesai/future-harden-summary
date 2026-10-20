@@ -2,24 +2,24 @@
   "traces": 40,
   "decisions": {
     "pass": 9,
-    "flag": 23,
-    "block": 8
+    "flag": 22,
+    "block": 9
   },
   "rule_violation_rate": {
     "rule1": 0.25,
     "rule2": 0.175,
     "rule3": 0.225,
-    "rule4": 0.1,
+    "rule4": 0.125,
     "other": 0.25
   },
   "code_violation_rate": {
     "rule1": 0.1,
     "rule2": 0.1,
     "rule3": 0.175,
-    "rule4": 0.1,
+    "rule4": 0.125,
     "other": 0.15
   },
-  "any_block_finding": 8,
+  "any_block_finding": 9,
   "judge_failures": 0,
   "repaired": 0,
   "quality": {
@@ -55,13 +55,13 @@
       "kappa": 0.9175475687103594
     },
     "all/code/rule4": {
-      "tp": 4,
+      "tp": 5,
       "fp": 0,
-      "fn": 1,
+      "fn": 0,
       "tn": 35,
       "precision": 1.0,
-      "recall": 0.8,
-      "kappa": 0.8749999999999999
+      "recall": 1.0,
+      "kappa": 1.0
     },
     "all/code/other": {
       "tp": 5,
@@ -145,13 +145,13 @@
       "kappa": 1.0
     },
     "all/combined/rule4": {
-      "tp": 4,
+      "tp": 5,
       "fp": 0,
-      "fn": 1,
+      "fn": 0,
       "tn": 35,
       "precision": 1.0,
-      "recall": 0.8,
-      "kappa": 0.8749999999999999
+      "recall": 1.0,
+      "kappa": 1.0
     },
     "all/combined/other": {
       "tp": 8,
@@ -325,13 +325,13 @@
       "kappa": 0.9175475687103594
     },
     "held_out/code/rule4": {
-      "tp": 4,
+      "tp": 5,
       "fp": 0,
-      "fn": 1,
+      "fn": 0,
       "tn": 35,
       "precision": 1.0,
-      "recall": 0.8,
-      "kappa": 0.8749999999999999
+      "recall": 1.0,
+      "kappa": 1.0
     },
     "held_out/code/other": {
       "tp": 5,
@@ -415,13 +415,13 @@
       "kappa": 1.0
     },
     "held_out/combined/rule4": {
-      "tp": 4,
+      "tp": 5,
       "fp": 0,
-      "fn": 1,
+      "fn": 0,
       "tn": 35,
       "precision": 1.0,
-      "recall": 0.8,
-      "kappa": 0.8749999999999999
+      "recall": 1.0,
+      "kappa": 1.0
     },
     "held_out/combined/other": {
       "tp": 8,

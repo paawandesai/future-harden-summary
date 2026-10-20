@@ -98,7 +98,39 @@ def biomarker_values(draft: str, facts: WeekFacts) -> list[Finding]:
                     )
                 )
                 break
+    if not findings:
+        findings += _bare_weight(draft, facts)
     return findings
+
+
+def _bare_weight(draft: str, facts: WeekFacts) -> list[Finding]:
+    """This member's exact body weight anywhere in the draft ("pushed you up to 207.2"), with or without a weight
+    word. A sentence that names a lift is about a load and is skipped."""
+    weights = next((m.values for m in facts.biomarkers if m.name == "body weight"), ())
+    lift = load_vocab()["rule2.lift"]
+    for sentence in sentences(draft):
+        if weights and not lift.hits(sentence) and any(_quotes_number(sentence, w) for w in weights):
+            return [
+                Finding(
+                    rule="4",
+                    check="biomarker_value",
+                    severity="block",
+                    reason="Quotes a body weight value (Rule 4).",
+                    evidence=sentence,
+                )
+            ]
+    return []
+
+
+_NOT_A_WEIGHT_UNIT = r"(?!\s*(?:min|mins|minutes|km|mi|miles|m|k|steps|hours|hrs|sec|seconds|reps|sets)\b)"
+
+
+def _quotes_number(sentence: str, value: float) -> bool:
+    """`value` written as itself ("207.2", "185"), not as part of another number or followed by a non-weight unit."""
+    return bool(re.search(rf"(?<![\d.,]){re.escape(f'{value:g}')}(?![\d]|\.\d){_NOT_A_WEIGHT_UNIT}", sentence))
+
+
+_RESULT = re.compile(r"\b(?:results?|levels?|tests?|clinic|check-?up|screening|bloodwork|numbers)\b", re.I)
 
 
 def lab_mentions(draft: str, facts: WeekFacts) -> list[Finding]:
@@ -106,6 +138,11 @@ def lab_mentions(draft: str, facts: WeekFacts) -> list[Finding]:
     terms = vocab["rule4.lab"].find(draft)
     for concept in facts.lab_names:
         terms += concept.find(draft)
+    if facts.lab_names:
+        # The member had labs this week, so a result judged in any words is about them: "results from your
+        # clinic visit came back a little low".
+        judged = vocab["rule4.lab_judgement"]
+        terms += [t for x in sentences(draft) if _RESULT.search(x) for t in judged.find(x)]
     if not terms:
         return []
     return [

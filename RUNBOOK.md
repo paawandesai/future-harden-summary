@@ -8,10 +8,13 @@ One page for running the pipeline on traces we have not seen. Design and results
 git pull && uv sync
 export ANTHROPIC_FUTURE_API_KEY=...        # or ANTHROPIC_API_KEY
 uv run pytest -q                            # about 2 s, no API calls
-uv run weekly-summary pipeline data/rehearsal.jsonl --no-generate --max-calls 20 --out /tmp/smoke.jsonl
+head -3 data/rehearsal.jsonl > /tmp/smoke.jsonl
+uv run weekly-summary pipeline /tmp/smoke.jsonl --judge-cache "$(mktemp -d)" --max-calls 20 --out /tmp/smoke_out.jsonl
 ```
 
-The last line is a smoke test of the key and both judges. It costs a few cents.
+The last two lines are a live smoke test. They generate 3 drafts and judge them with an empty cache, so every call
+reaches the API. Expect 3 decision lines and a non-zero spend on stderr (about $0.003). If the key is wrong or
+missing, all 3 lines are `block` with "No draft could be produced", and the spend is $0.
 
 ## The command
 
@@ -27,7 +30,7 @@ uv run weekly-summary pipeline <traces.jsonl> --out decisions.jsonl --details de
 - **Without generation** (judge the drafts already in the file): add `--no-generate`.
 - **Without any API key** (code checks only): `--code-only`.
 - **Expect:** for 60 to 100 traces, about 2 to 3 minutes with 4 workers. The cost is about $0.001 per trace, plus
-  a few cents for the Sonnet confirmation step. On new drafts, about 1 in 12 is flagged and blocks are rare. On
+  a few cents for the Sonnet confirmation step. On new drafts, about 7% are flagged on familiar inputs and about 17% on unseen ones, and blocks are rare. On
   recorded production drafts, expect about 30% blocked.
 
 ## When something goes wrong

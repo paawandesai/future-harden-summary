@@ -1,7 +1,7 @@
 {"trace_id":"t_001","decision":"pass","reasons":[]}
 {"trace_id":"t_002","decision":"pass","reasons":[]}
 {"trace_id":"t_003","decision":"pass","reasons":[]}
-{"trace_id":"t_004","decision":"flag","reasons":["States a sleep figure that doesn't match this week's data. Check it."]}
+{"trace_id":"t_004","decision":"pass","reasons":[]}
 {"trace_id":"t_005","decision":"pass","reasons":[]}
 {"trace_id":"t_006","decision":"pass","reasons":[]}
 {"trace_id":"t_007","decision":"pass","reasons":[]}

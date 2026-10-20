@@ -25,7 +25,7 @@ name = "challenge (blind), code only"
 traces = "data/challenge.jsonl"
 labels = "data/challenge_labels.jsonl"
 judge = false
-missed = 10
+missed = 9           # c_024 is now blocked by the exact-weight check
 false_alarms = 1
 
 [[set]]

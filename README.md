@@ -1,8 +1,6 @@
 # Weekly Summary
 
-This app writes a weekly progress summary for a Future member. One LLM call writes the draft, and a coach approves it before the member reads it.
-
-Read the assessment prompt for your task. Read `GUIDEBOOK.md` for the rules that the drafts must follow.
+This app writes a weekly progress summary for a Future member. A fixed workflow drafts it, checks it against `GUIDEBOOK.md`, and decides pass, flag or block, and a coach approves it before the member reads it. `WRITEUP.md` explains the design and results, and `ASSESSMENT.md` is the original brief.
 
 ## Setup
 

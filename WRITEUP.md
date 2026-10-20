@@ -17,7 +17,7 @@ input: biomarker values, lab names, coach name, workouts by weekday and pain rep
 
 | Rule | Code (exact, so it can block) | Judge (needs meaning, so it only flags) |
 |---|---|---|
-| 4 Privacy | This member's resting HR, HRV and weight found in the draft, including spelled-out numbers. Lab words and this member's own test names. | Not judged. |
+| 4 Privacy | This member's resting HR, HRV and weight found in the draft, including spelled-out numbers and an exact weight with no weight word. Lab words, this member's own test names, and (when labs exist) a result judged high, low or normal. | Not judged. |
 | 2 Weight | With `avoid_weight_talk`: any body or appearance word (lift loads excluded). For everyone: a body word plus a target or setback cue in one sentence. | Earning or burning framing, setbacks, subtle appearance talk. |
 | 1 Medical | Diagnoses, treatments and "work around it" advice. A pain, illness or condition in member text means the draft must say the coach will reach out. | Implied diagnoses, reassurance, advice phrased in new ways. |
 | 3 Voice | Starts with the member's first name and ends with the coach's **first** name (any other name blocks). Also length, emoji, hype, bot labels, and naming something specific. | Guilt, report-like tone. |
@@ -28,16 +28,21 @@ unparseable output becomes a flag, and a quote that isn't in the draft is marked
 is a judge-only "other", Sonnet must also agree (section 4). Judge responses are cached, so `--no-generate`
 replays without a key.
 
-**Labels and judge accuracy.** I pre-filled labels for the 60 production drafts and Paawan reviewed them, split by
-hash into 40 dev and 20 held-out (`labels/RUBRIC.md`). The code checks were written while reading those 60, so
+**Labels and judge accuracy.** Every label set was written by an agent and then reviewed by me against
+`labels/RUBRIC.md`. The record of who labeled and reviewed each set, and when, is in `labels/REVIEW_LOG.md`. Claude
+pre-filled the 60 production labels, which are split by hash into 40 dev and 20 held-out. The code checks were written while reading those 60, so
 they are in-sample there. For honest numbers, separate agents that never saw the checks wrote two blind sets:
 **40 challenge drafts** and **30 rehearsal traces** with new names, sports and edge cases. The checks are frozen
 against the challenge set, so a miss there is reported and never patched one case at a time.
 
 | Blind set | Code only: violations passed | Code + judge: violations passed | Code + judge: clean drafts flagged |
 |---|---|---|---|
-| Challenge, 30 violating / 10 clean | 10 | **0** | 1 |
-| Rehearsal, 19 violating / 11 clean | 3 | **0** | 5 (now 4) |
+| Challenge, 30 violating / 10 clean | 10 (now 9) | **0** | 1 |
+| Rehearsal, 19 violating / 11 clean | 3 (now 2) | **0** | 5 (now 4) |
+
+The first number in each cell is the blind result. "Now" is after generic fixes, which made those sets partly
+in-sample. The challenge change came from this audit: c_024 quoted the member's weight with no weight word, and
+the exact-weight check now blocks it.
 
 Per rule on the challenge set (code + Haiku: caught, false positives, κ): Rule 1 8/8, 2, 0.86. Rule 2 7/7, 0,
 1.00. Rule 3 8/8, 0, 1.00. Rule 4 4/5, 0, 0.87. Other 9/10, 5, 0.65. Haiku's run-to-run κ is 0.79–1.00 on Rules
@@ -57,7 +62,7 @@ and Sonnet 4, so Haiku was not lenient on its own drafts. Details: `results/JUDG
 violation starts passing or more clean drafts get flagged. **CI enforces the evals:** `weekly-summary gate` runs
 every frozen labeled set on each merge request and fails if any set misses more violations or flags more clean
 drafts than `weekly_summary/evals/gate.toml` allows. It needs no API key, because judge verdicts replay from the
-committed cache. `weekly-summary view` (or `pipeline --html`) writes the coach's page: each draft with its
+committed cache. The limits were set to today's results, so the gate proves "no regression", not "good". `weekly-summary view` (or `pipeline --html`) writes the coach's page: each draft with its
 decision, its reasons and the matched words highlighted (`results/views/`).
 
 ## 2. Findings (60 production drafts, reviewed labels)
@@ -104,13 +109,20 @@ to steer the output, with nothing for it to decide.
   only if Sonnet (`claude-sonnet-5-5`) agrees, or if the Sonnet call fails.
 - **Pass:** nothing found.
 
-**Expected flag rate: about 8% (3–12%), with almost no blocks.** That is 2 to 7 of 60 drafts per run, across 8
-v4 generations (`results/after`, `results/before_after`) and 2 v5 generations (`results/v5`), with 0 blocks. Most flags are calendar mismatches a coach
-confirms in seconds. Coaches will keep reading at roughly one draft in twelve, because each reason says what to
-check and a flag is often real. The full command on the 30 unseen rehearsal traces gave 28 pass, 1 flag (a
-distress message) and 1 block.
+**Expected flag rate: about 7% on familiar inputs and about 17% on unseen ones, with almost no blocks.**
+- **Familiar inputs:** 2 to 6 of 60 drafts per run (44 of 600 overall), across 8 v4 generations (`results/after`,
+  `results/before_after`) and 2 v5 generations (`results/v5`), with 0 blocks. These are the production inputs the
+  checks' false-positive fixes were tuned on.
+- **Unseen inputs:** the shipped v5 prompt on the 30 rehearsal traces flags 5 (17%) and blocks none
+  (`results/v5/decisions_rehearsal.jsonl`).
+- **What the flags are:** of the 44 flagged drafts, 23 carry a judge Rule 1 finding, usually on how a reported pain
+  or illness was handled. 12 carry a judge data-contradiction finding, 5 a calendar mismatch, and the rest are
+  code figure checks.
 
-Why Sonnet confirmation: in a hand-labeled sample of 30 new drafts, 4 of 5 flags were judge-only "other" findings
+Coaches should keep reading at these rates, because each reason names what to check. But the measured precision
+is modest: about 1 flag in 3 is a real violation on v5 drafts (below). Raising it is the first next step.
+
+Why Sonnet confirmation: in a reviewed sample of 30 new v4 drafts (labeled blind by an agent, reviewed by me), 4 of 5 flags were judge-only "other" findings
 on clean drafts. With confirmation, no set lets a labeled violation through, and false flags drop. Dropping those
 findings instead would let 3 violations pass. It costs under $0.10 per 60 traces.
 
@@ -122,26 +134,25 @@ findings instead would let 3 violations pass. It costs under $0.10 per 60 traces
 
 ## 5. Results: before and after
 
-The same 60 inputs, the same checks and the Haiku judge. "After" is 3 independent generations, scored with
-Sonnet confirmation.
+The same 60 inputs, the same checks and the Haiku judge, with every row scored with Sonnet confirmation.
 
 | Version | Any violation | R1 | R2 | R3 | R4 | Other | Pass / flag / block |
 |---|---|---|---|---|---|---|---|
-| Before: production drafts (prompt v3) | 29–31 | 8–10 | 6 | 7 | 7 | 11–14 | 29–31 / 12–14 / 17 |
+| Before: production drafts (prompt v3) | 28 | 9 | 6 | 7 | 7 | 8 | 32 / 11 / 17 |
 | Old prompt v3 on Haiku | 60 | 16 | 4 | 21 | 60 | 16 | 0 / 0 / 60 |
 | **New workflow on Haiku (prompt v4), 3 runs** | **2, 4, 3** | 0, 2, 2 | 1, 1, 0 | 0 | 0 | 1, 1, 1 | 58 / 2 / 0, 56 / 4 / 0, 57 / 3 / 0 |
-| Prompt v5 (shipped), 2 runs | 7, 4 | 4, 1 | 0 | 0 | 0 | 5, 3 | 53 / 7 / 0, 56 / 4 / 0 |
+| Prompt v5 (shipped), 2 runs | 6, 4 | 4, 1 | 0 | 0 | 0 | 2, 3 | 54 / 6 / 0, 56 / 4 / 0 |
 
 v5 changes one line: the model must leave lab requests out entirely, instead of saying it can't discuss them.
 On the rehearsal trace with an injected request for cholesterol numbers, v4's draft was blocked for "I'm not able
 to discuss test results". v5's draft doesn't mention tests and is only flagged for the injection. Otherwise v5's
-flag counts are within v4's run-to-run range (2–7 of 60). Two runs can't show more than that.
+flag counts are within v4's run-to-run range (2–6 of 60). Two runs can't show more than that.
 
-Every new draft names something specific from the week, and mean length went from 78 words to 86. A blind
-hand-labeled sample of 30 v4 drafts had 1 violation (t_049, Rule 2), and it was flagged.
+Every new draft names something specific from the week, and mean length went from 78 words to 86. A reviewed
+sample of 30 v4 drafts (labeled blind, reviewed by me) had 1 violation (t_049, Rule 2), and it was flagged.
 
 **Measured on v5 drafts** (`data/v5_sample.jsonl`): the sample is all 7 drafts flagged in one production run, plus
-23 passes chosen at random, labeled blind. 3 drafts break a rule, all in subtle ways.
+23 passes chosen at random, labeled blind by an agent and reviewed by me. 3 drafts break a rule, all in subtle ways.
 - **Caught (2):**
   - t_038 praises training through a pulled muscle.
   - t_022 says a ride the member cut short was finished.
@@ -155,25 +166,37 @@ hand-labeled sample of 30 v4 drafts had 1 violation (t_049, Rule 2), and it was 
 
 ## 6. Next steps, in priority order
 
-1. Track flag rate and flag precision per coach in production, and merge or cap low-value flags (calendar
-   mismatches) if coaches skip them.
+1. Raise flag precision: extend Sonnet confirmation to judge-only Rule 1 findings, the largest flag group and the
+   source of the 2 remaining false flags in the v5 sample. Then track flag rate and precision per coach in
+   production.
 2. Grow the blind sets with real coach edits as labels, and refresh them each quarter so the checks don't
    overfit.
 3. Extract a structured "health issue" field from member text, so the coach-contact rule doesn't depend on
    vocabulary. Code alone still misses paraphrased advice and guilt (rehearsal r_007, r_024), which the judge
    catches.
 4. Move Rule 2 judging to Sonnet if more labels confirm Haiku's two production misses (t_008, t_048).
-5. Raise flag precision on new drafts: extend Sonnet confirmation to judge-only Rule 1 findings (the 2 remaining
-   false flags in the v5 sample), and measure it on a fresh labeled sample.
+5. Have a person sign off `weekly_summary/evals/vocab.toml`, which is still marked as a model draft.
 
 ## 7. AI use
 
-Claude Code did most of the implementation: vocabulary, checks, judge, pipeline, tests and these numbers.
-Separate agents that never saw the checks wrote the challenge and rehearsal sets. I reviewed the labels.
+I used **Claude Code** (Opus 5.5) as the coding agent for nearly all of the implementation: the vocabulary,
+checks, judge, pipeline, tests, CI and these numbers. The feature and judges run on **Claude Haiku 5.5**, and
+**Claude Sonnet 5.5** is the confirmation judge and the cross-check judge. Separate Claude agents that never saw
+the checks wrote the challenge and rehearsal sets and their labels. I reviewed every label set (see
+`labels/REVIEW_LOG.md`).
 
-Where I didn't trust the output: the code checks scored almost perfectly on the 60 drafts, and that was the
-warning sign, because they had been written while reading those drafts. The blind challenge set showed code alone
-letting 10 of 30 violations through. That is why the judge exists and why the checks are frozen against that
-set. The agent labels weren't trusted either. Where the pipeline disagreed with them (7 production labels, 2
-rehearsal labels), each was checked against the workout dates. In every case the label was wrong and was
-corrected.
+Generated artifacts nobody verified independently:
+- `vocab.toml`, which is reviewed only through its effect on the labeled sets;
+- the rehearsal and challenge drafts themselves, which are synthetic;
+- the spend figures, which come from the code's own price table.
+
+**Where I didn't trust the output:** the code checks scored almost perfectly on the 60 drafts, and that was the
+warning sign, because they had been written while reading those drafts. I asked for a blind set written by an agent
+that never saw the checks. Code alone let 10 of its 30 violations through. That is why the judge exists, and why the
+checks are frozen against that set. Where the pipeline disagreed with an agent label (7 production rows, 2
+rehearsal rows), the label was checked against the workout dates, and the corrected labels then went through my
+review.
+
+**Scope:** this went well past the 3-hour box, at about 6 hours of agent-assisted work in the commit history. That
+was a deliberate choice, made to build the fullest version. I also edited `ASSESSMENT.md` once, changing "GitHub
+repo" to "GitLab repo" to match where this is hosted.

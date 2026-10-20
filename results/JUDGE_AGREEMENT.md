@@ -11,7 +11,7 @@ Total API spend for everything below: about $1.95 (Haiku $0.27, Sonnet $1.66), m
 
 ## Summary
 
-- **The judge earns its place out of sample.** On the blind challenge set, code alone let 13 of 30 violating
+- **The judge earns its place out of sample.** On the blind challenge set, code alone let 13 of 30 (9 with the current checks; see `results/challenge/report_code_only.json`) violating
   drafts pass. Code plus the Haiku judge let 0 pass, in all three runs.
 - **Rules 1 and 2 are where the judge is strong.** On the challenge set Haiku caught 8/8 Rule 1 and 7/7 Rule 2
   violations with κ 0.86 and 1.00. On the 60 production drafts it caught 5/5 Rule 1 but only 5/7 Rule 2.

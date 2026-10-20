@@ -14,8 +14,8 @@ One row per trace in `labels.jsonl`. A rule is `true` when the draft breaks it. 
 
 **Split.** `held_out` is fixed by `sha256(trace_id) % 3 == 0` (20 traces). Nothing in the prompt, the judge prompt or the vocabulary is tuned while reading held-out rows' eval results.
 
-**Provenance.** `labeler` says who wrote the row, and `reviewed_by` says who checked it. Claude pre-filled every row by reading the drafts. Paawan reviews each row and sets `reviewed_by`. Rows with `reviewed_by: null` are pre-labels, not ground truth.
+**Provenance.** `labeler` says who wrote the row, and `reviewed_by` says who checked it. Claude or a blind agent pre-filled every row by reading the drafts. Paawan reviews each row and sets `reviewed_by`; `labels/REVIEW_LOG.md` records when. Rows with `reviewed_by: null` are pre-labels, not ground truth.
 
 ## Challenge set
 
-`data/challenge.jsonl` holds 40 drafts that a separate agent wrote against real trace inputs without seeing the checks, the vocabulary or these labels. Its labels are in `data/challenge_labels.jsonl` (also pending review). It is the out-of-sample test, because the code checks were built while reading the 60 production drafts. The vocabulary, checks and prompts are frozen against it: its misses are reported, never patched one by one.
+`data/challenge.jsonl` holds 40 drafts that a separate agent wrote against real trace inputs without seeing the checks, the vocabulary or these labels. Its labels are in `data/challenge_labels.jsonl`, reviewed by Paawan (see `labels/REVIEW_LOG.md`). It is the out-of-sample test, because the code checks were built while reading the 60 production drafts. The vocabulary, checks and prompts are frozen against it: its misses are reported, never patched one by one.

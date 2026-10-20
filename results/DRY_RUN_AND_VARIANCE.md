@@ -1,5 +1,8 @@
 # Live-run dry run and a 5-run variance check (2026-10-20)
 
+> Historical record. The flag rates here predate later false-positive fixes and Sonnet confirmation. Current
+> numbers are in `WRITEUP.md` section 4, rescored in `results/before_after/*_confirm.jsonl`.
+
 Generator and judge: `claude-haiku-5-5`, prompt v4 with one repair step, judge j1, checks as of `51db670`
 (including the calendar check).
 
