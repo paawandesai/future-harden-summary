@@ -66,7 +66,6 @@ class WeekFacts:
     member_first: str
     coach_first: str
     coach_full: str
-    other_coach_firsts: frozenset[str]
     avoid_weight_talk: bool
     biomarkers: tuple[Biomarker, ...]
     lab_names: tuple[Concept, ...]
@@ -82,9 +81,6 @@ class WeekFacts:
     specifics: tuple[Concept, ...]  # things the draft can name to be specific
     grounded_numbers: frozenset[float]
 
-
-# Coach names seen in this deployment's data, so a sign-off from the wrong coach is recognized.
-KNOWN_COACH_FIRSTS = frozenset({"Jordan", "Elena", "Priya", "Marcus", "Sam", "Tasha"})
 
 _DAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 _GENERIC_WORKOUT_WORDS = {
@@ -190,7 +186,6 @@ def week_facts(week: MemberWeek) -> WeekFacts:
         member_first=week.member.first_name,
         coach_first=coach_parts[0],
         coach_full=week.member.coach_name,
-        other_coach_firsts=KNOWN_COACH_FIRSTS - {coach_parts[0]},
         avoid_weight_talk=week.member.avoid_weight_talk,
         biomarkers=biomarkers,
         lab_names=_lab_concepts(week),

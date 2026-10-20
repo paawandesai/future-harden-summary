@@ -176,3 +176,54 @@ def markdown(report: dict[str, object]) -> str:
             f"Labels reviewed by a person: {report['labels_reviewed']}.",
         ]
     return "\n".join(lines)
+
+
+def compare(before: list[Detail], after: list[Detail], labels: dict[str, Label] | None) -> dict[str, object]:
+    """Two runs on the same traces, side by side. With labels, a change is worse if it lets a labeled
+    violation pass that passed nothing before, or flags more clean drafts."""
+    a, b = summarize(before, labels), summarize(after, labels)
+    old = {d.trace_id: d.decision for d in before}
+    moved = Counter(
+        f"{old[d.trace_id]} -> {d.decision}" for d in after if old.get(d.trace_id, d.decision) != d.decision
+    )
+    result: dict[str, object] = {
+        "traces": [a["traces"], b["traces"]],
+        "decisions": [a["decisions"], b["decisions"]],
+        "rule_violation_rate": [a["rule_violation_rate"], b["rule_violation_rate"]],
+        "quality": [a["quality"], b["quality"]],
+        "moved": dict(sorted(moved.items())),
+    }
+    if labels:
+        missed = [set(a["missed_violations"]), set(b["missed_violations"])]  # type: ignore[arg-type]
+        alarms = [set(a["false_alarms"]), set(b["false_alarms"])]  # type: ignore[arg-type]
+        result |= {
+            "newly_missed": sorted(missed[1] - missed[0]),
+            "newly_caught": sorted(missed[0] - missed[1]),
+            "new_false_alarms": sorted(alarms[1] - alarms[0]),
+            "cleared_false_alarms": sorted(alarms[0] - alarms[1]),
+            "worse": len(missed[1]) > len(missed[0]) or len(alarms[1]) > len(alarms[0]),
+        }
+    return result
+
+
+def compare_markdown(result: dict[str, object], names: tuple[str, str] = ("before", "after")) -> str:
+    rates, decisions, quality = result["rule_violation_rate"], result["decisions"], result["quality"]
+    assert isinstance(rates, list) and isinstance(decisions, list) and isinstance(quality, list)
+    lines = [f"| | {names[0]} | {names[1]} |", "|---|---|---|"]
+    for k in ("pass", "flag", "block"):
+        lines.append(f"| {k} | {decisions[0][k]} | {decisions[1][k]} |")
+    for rule in RULES:
+        lines.append(f"| {rule} violation rate | {rates[0][rule]:.0%} | {rates[1][rule]:.0%} |")
+    lines.append(f"| mean words | {quality[0]['mean_words']} | {quality[1]['mean_words']} |")
+    lines.append(f"| specific | {quality[0]['specific']} | {quality[1]['specific']} |")
+    lines += ["", f"Decisions that moved: {json.dumps(result['moved']) if result['moved'] else 'none'}."]
+    if "worse" in result:
+        for key, label in (
+            ("newly_missed", "Labeled violations that now pass"),
+            ("newly_caught", "Labeled violations now caught"),
+            ("new_false_alarms", "Clean drafts newly flagged or blocked"),
+            ("cleared_false_alarms", "Clean drafts no longer flagged"),
+        ):
+            lines.append(f"{label}: {result[key] or 'none'}.")
+        lines.append("Verdict: WORSE." if result["worse"] else "Verdict: not worse on labeled traces.")
+    return "\n".join(lines)

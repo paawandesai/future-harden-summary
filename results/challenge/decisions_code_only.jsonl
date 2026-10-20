@@ -24,12 +24,12 @@
 {"trace_id":"c_024","decision":"pass","reasons":[]}
 {"trace_id":"c_025","decision":"pass","reasons":[]}
 {"trace_id":"c_026","decision":"block","reasons":["Sets a weight target or treats weight as something to fix (Rule 2)."]}
-{"trace_id":"c_027","decision":"block","reasons":["Mentions weight, body or appearance for a member who asked to avoid weight talk (Rule 2).","Sets a weight target or treats weight as something to fix (Rule 2).","Signed with a different coach's name (Rule 3)."]}
+{"trace_id":"c_027","decision":"block","reasons":["Mentions weight, body or appearance for a member who asked to avoid weight talk (Rule 2).","Sets a weight target or treats weight as something to fix (Rule 2).","Signed with a name that isn't this member's coach (Rule 3)."]}
 {"trace_id":"c_028","decision":"pass","reasons":[]}
 {"trace_id":"c_029","decision":"flag","reasons":["Uses hype words (Rule 3)."]}
 {"trace_id":"c_030","decision":"flag","reasons":["Does not start with the member's first name (Rule 3).","Reads like a bot: a label, heading or list (Rule 3)."]}
 {"trace_id":"c_031","decision":"flag","reasons":["Uses 2 emoji; the limit is one (Rule 3)."]}
-{"trace_id":"c_032","decision":"flag","reasons":["Does not end with the coach's first name (Rule 3)."]}
+{"trace_id":"c_032","decision":"flag","reasons":["Signs off with the coach's full name, not first name (Rule 3)."]}
 {"trace_id":"c_033","decision":"flag","reasons":["Names nothing specific the member did this week (Rule 3)."]}
 {"trace_id":"c_034","decision":"flag","reasons":["Runs 159 words, over the 150-word limit (Rule 3)."]}
 {"trace_id":"c_035","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Places a workout on Saturday, but nothing was scheduled that day. Check it."]}
@@ -37,4 +37,4 @@
 {"trace_id":"c_037","decision":"block","reasons":["Mentions lab results (Rule 4)."]}
 {"trace_id":"c_038","decision":"pass","reasons":[]}
 {"trace_id":"c_039","decision":"pass","reasons":[]}
-{"trace_id":"c_040","decision":"flag","reasons":["Describes a missed workout as done. Check it."]}
+{"trace_id":"c_040","decision":"pass","reasons":[]}

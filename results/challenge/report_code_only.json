@@ -1,8 +1,8 @@
 {
   "traces": 40,
   "decisions": {
-    "pass": 18,
-    "flag": 14,
+    "pass": 19,
+    "flag": 13,
     "block": 8
   },
   "rule_violation_rate": {
@@ -10,14 +10,14 @@
     "rule2": 0.1,
     "rule3": 0.175,
     "rule4": 0.1,
-    "other": 0.175
+    "other": 0.15
   },
   "code_violation_rate": {
     "rule1": 0.1,
     "rule2": 0.1,
     "rule3": 0.175,
     "rule4": 0.1,
-    "other": 0.175
+    "other": 0.15
   },
   "any_block_finding": 8,
   "judge_failures": 0,
@@ -64,13 +64,13 @@
       "kappa": 0.8749999999999999
     },
     "all/code/other": {
-      "tp": 6,
+      "tp": 5,
       "fp": 1,
-      "fn": 4,
+      "fn": 5,
       "tn": 29,
-      "precision": 0.8571428571428571,
-      "recall": 0.6,
-      "kappa": 0.6296296296296298
+      "precision": 0.8333333333333334,
+      "recall": 0.5,
+      "kappa": 0.5384615384615384
     },
     "all/judge/rule1": {
       "tp": 0,
@@ -154,13 +154,13 @@
       "kappa": 0.8749999999999999
     },
     "all/combined/other": {
-      "tp": 6,
+      "tp": 5,
       "fp": 1,
-      "fn": 4,
+      "fn": 5,
       "tn": 29,
-      "precision": 0.8571428571428571,
-      "recall": 0.6,
-      "kappa": 0.6296296296296298
+      "precision": 0.8333333333333334,
+      "recall": 0.5,
+      "kappa": 0.5384615384615384
     },
     "dev/code/rule1": {
       "tp": 0,
@@ -334,13 +334,13 @@
       "kappa": 0.8749999999999999
     },
     "held_out/code/other": {
-      "tp": 6,
+      "tp": 5,
       "fp": 1,
-      "fn": 4,
+      "fn": 5,
       "tn": 29,
-      "precision": 0.8571428571428571,
-      "recall": 0.6,
-      "kappa": 0.6296296296296298
+      "precision": 0.8333333333333334,
+      "recall": 0.5,
+      "kappa": 0.5384615384615384
     },
     "held_out/judge/rule1": {
       "tp": 0,
@@ -424,13 +424,13 @@
       "kappa": 0.8749999999999999
     },
     "held_out/combined/other": {
-      "tp": 6,
+      "tp": 5,
       "fp": 1,
-      "fn": 4,
+      "fn": 5,
       "tn": 29,
-      "precision": 0.8571428571428571,
-      "recall": 0.6,
-      "kappa": 0.6296296296296298
+      "precision": 0.8333333333333334,
+      "recall": 0.5,
+      "kappa": 0.5384615384615384
     }
   },
   "missed_violations": [
@@ -442,7 +442,8 @@
     "c_025",
     "c_028",
     "c_038",
-    "c_039"
+    "c_039",
+    "c_040"
   ],
   "false_alarms": [
     "c_009"

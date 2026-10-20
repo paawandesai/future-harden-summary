@@ -34,6 +34,28 @@ _EMOJI = re.compile(
 )
 _MARKDOWN = re.compile(r"^\s*(?:#{1,6}\s|[-*•]\s|\d+[.)]\s)|\*\*[^*]+\*\*", re.MULTILINE)
 _WORD = re.compile(r"[A-Za-z0-9][\w'’-]*")
+_CALENDAR_WORDS = {
+    *("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "today", "tomorrow"),
+    *("january", "february", "march", "april", "may", "june", "july", "august", "september", "october"),
+    *("november", "december", "i"),
+}
+_SIGNOFF_WORDS = {
+    "coach",
+    "cheers",
+    "best",
+    "thanks",
+    "talk",
+    "soon",
+    "warmly",
+    "from",
+    "your",
+    "love",
+    "see",
+    "you",
+    "go",
+    "get",
+    "it",
+}
 
 
 def sentences(text: str) -> list[str]:
@@ -155,7 +177,7 @@ def word_count(text: str) -> int:
 def opening_and_signoff(draft: str, facts: WeekFacts) -> list[Finding]:
     findings: list[Finding] = []
     words = _WORD.findall(draft)
-    if not words or words[0] != facts.member_first:
+    if not draft.lstrip().replace("’", "'").startswith(facts.member_first):
         findings.append(
             Finding(
                 rule="3",
@@ -165,36 +187,42 @@ def opening_and_signoff(draft: str, facts: WeekFacts) -> list[Finding]:
                 evidence=" ".join(words[:6]),
             )
         )
-    tail = draft.strip().rstrip(".!")
-    last = words[-1] if words else ""
-    if tail.endswith(facts.coach_full) and facts.coach_full != facts.coach_first:
+    # The sign-off is what follows the last sentence: "Talk soon. Elena", "Cheers,\nElena", "Coach Elena".
+    tail = re.split(r"[.!?\n]", draft.strip().rstrip(".!"))[-1]
+    signed = [w for w in _WORD.findall(tail) if w.lower() not in _SIGNOFF_WORDS]
+    name = " ".join(signed)
+    is_name = 1 <= len(signed) <= 3 and all(w[0].isupper() and w.lower() not in _CALENDAR_WORDS for w in signed)
+    coach_parts = facts.coach_full.split()
+    if name == facts.coach_full and len(coach_parts) > 1:
         findings.append(
             Finding(
                 rule="3",
                 check="signoff",
                 severity="flag",
                 reason="Signs off with the coach's full name, not first name (Rule 3).",
-                evidence=last,
+                evidence=name,
             )
         )
-    elif last in facts.other_coach_firsts:
+    elif (is_name and coach_parts[: len(signed)] == signed) or (words and words[-1] == facts.coach_first):
+        pass  # first name, or first and middle for a three-part name
+    elif is_name and name not in facts.member_first:
         findings.append(
             Finding(
                 rule="3",
                 check="signoff",
                 severity="block",
-                reason="Signed with a different coach's name (Rule 3).",
-                evidence=last,
+                reason="Signed with a name that isn't this member's coach (Rule 3).",
+                evidence=name,
             )
         )
-    elif last != facts.coach_first:
+    else:
         findings.append(
             Finding(
                 rule="3",
                 check="signoff",
                 severity="flag",
                 reason="Does not end with the coach's first name (Rule 3).",
-                evidence=last,
+                evidence=tail.strip()[-40:],
             )
         )
     return findings

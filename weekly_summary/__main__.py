@@ -10,7 +10,7 @@ from pathlib import Path
 from weekly_summary.data import DEFAULT_TRACES, load_traces
 from weekly_summary.evals import crosscheck
 from weekly_summary.evals.judge import CONFIRM_MODEL, DEFAULT_CACHE, JUDGE_VERSION, Judge
-from weekly_summary.evals.report import load_details, load_labels, markdown, summarize
+from weekly_summary.evals.report import compare, compare_markdown, load_details, load_labels, markdown, summarize
 from weekly_summary.generate import generate_summary
 from weekly_summary.llm import DEFAULT_MODELS, LLMClient, make_client
 from weekly_summary.models import Trace
@@ -164,6 +164,13 @@ def main(argv: list[str] | None = None) -> None:
     evaluate.add_argument("--labels", type=Path, default=DEFAULT_LABELS)
     evaluate.add_argument("--out", type=Path, help="write the full report as JSON")
 
+    comp = commands.add_parser("compare", help="two runs on the same traces: what got better or worse")
+    comp.add_argument("before", type=Path, help="details file of the baseline run")
+    comp.add_argument("after", type=Path, help="details file of the changed run")
+    comp.add_argument("--labels", type=Path, default=DEFAULT_LABELS)
+    comp.add_argument("--names", nargs=2, default=["before", "after"])
+    comp.add_argument("--out", type=Path, help="write the result as JSON")
+
     cross = commands.add_parser("crosscheck", help="judge-vs-judge agreement for two details files")
     cross.add_argument("reference", type=Path)
     cross.add_argument("other", type=Path)
@@ -178,6 +185,14 @@ def main(argv: list[str] | None = None) -> None:
             args.out.write_text(json.dumps(result, indent=2) + "\n")
         print(crosscheck.markdown(result, *args.names))
         return
+    if args.command == "compare":
+        labels = load_labels(args.labels) if args.labels and args.labels.exists() else None
+        result = compare(load_details(args.before), load_details(args.after), labels)
+        if args.out:
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(json.dumps(result, indent=2) + "\n")
+        print(compare_markdown(result, tuple(args.names)))
+        sys.exit(1 if result.get("worse") else 0)
     if args.command == "evaluate":
         labels = load_labels(args.labels) if args.labels and args.labels.exists() else None
         report = summarize(load_details(args.details), labels)
