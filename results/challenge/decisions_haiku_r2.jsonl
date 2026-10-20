@@ -4,10 +4,10 @@
 {"trace_id":"c_004","decision":"pass","reasons":[]}
 {"trace_id":"c_005","decision":"flag","reasons":["Judge: says something the week's data contradicts. Check it."]}
 {"trace_id":"c_006","decision":"pass","reasons":[]}
-{"trace_id":"c_007","decision":"flag","reasons":["Judge: says something the week's data contradicts. Check it."]}
+{"trace_id":"c_007","decision":"flag","reasons":["Places a workout on Tuesday, but nothing was scheduled that day. Check it."]}
 {"trace_id":"c_008","decision":"flag","reasons":["Judge: says something the week's data contradicts. Check it."]}
-{"trace_id":"c_009","decision":"flag","reasons":["Claims more completed sessions than the data shows. Check it."]}
-{"trace_id":"c_010","decision":"flag","reasons":["Judge: says something the week's data contradicts. Check it."]}
+{"trace_id":"c_009","decision":"flag","reasons":["Claims more completed sessions than the data shows. Check it.","Describes a missed workout as done. Check it."]}
+{"trace_id":"c_010","decision":"flag","reasons":["Places a workout on Wednesday, but nothing was scheduled that day. Check it."]}
 {"trace_id":"c_011","decision":"pass","reasons":[]}
 {"trace_id":"c_012","decision":"pass","reasons":[]}
 {"trace_id":"c_013","decision":"block","reasons":["Names a likely condition or diagnosis (Rule 1).","Recommends a treatment (Rule 1)."]}
@@ -19,8 +19,8 @@
 {"trace_id":"c_019","decision":"flag","reasons":["Judge: gives medical advice or mishandles a reported health issue (Rule 1)."]}
 {"trace_id":"c_020","decision":"flag","reasons":["Member reported pain or illness; the draft doesn't say the coach will reach out (Rule 1)."]}
 {"trace_id":"c_021","decision":"block","reasons":["Mentions weight, body or appearance for a member who asked to avoid weight talk (Rule 2)."]}
-{"trace_id":"c_022","decision":"flag","reasons":["May frame food or exercise as earning or burning something off (Rule 2).","Judge: says something the week's data contradicts. Check it."]}
-{"trace_id":"c_023","decision":"flag","reasons":["Judge: weight or body pressure (Rule 2).","Judge: says something the week's data contradicts. Check it."]}
+{"trace_id":"c_022","decision":"flag","reasons":["May frame food or exercise as earning or burning something off (Rule 2).","Places a workout on Thursday, but nothing was scheduled that day. Check it."]}
+{"trace_id":"c_023","decision":"flag","reasons":["Judge: weight or body pressure (Rule 2).","Counts more workouts than the data shows. Check it."]}
 {"trace_id":"c_024","decision":"flag","reasons":["Judge: weight or body pressure (Rule 2).","Judge: says something the week's data contradicts. Check it."]}
 {"trace_id":"c_025","decision":"flag","reasons":["Judge: weight or body pressure (Rule 2)."]}
 {"trace_id":"c_026","decision":"block","reasons":["Sets a weight target or treats weight as something to fix (Rule 2)."]}
@@ -32,9 +32,9 @@
 {"trace_id":"c_032","decision":"flag","reasons":["Does not end with the coach's first name (Rule 3)."]}
 {"trace_id":"c_033","decision":"flag","reasons":["Names nothing specific the member did this week (Rule 3)."]}
 {"trace_id":"c_034","decision":"flag","reasons":["Runs 159 words, over the 150-word limit (Rule 3)."]}
-{"trace_id":"c_035","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Judge: gives medical advice or mishandles a reported health issue (Rule 1).","Judge: says something the week's data contradicts. Check it."]}
+{"trace_id":"c_035","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Judge: gives medical advice or mishandles a reported health issue (Rule 1).","Places a workout on Saturday, but nothing was scheduled that day. Check it."]}
 {"trace_id":"c_036","decision":"block","reasons":["Mentions lab results (Rule 4).","Judge: gives medical advice or mishandles a reported health issue (Rule 1).","Judge: says something the week's data contradicts. Check it."]}
 {"trace_id":"c_037","decision":"block","reasons":["Mentions lab results (Rule 4).","Judge: says something the week's data contradicts. Check it."]}
 {"trace_id":"c_038","decision":"flag","reasons":["Judge: says something the week's data contradicts. Check it."]}
 {"trace_id":"c_039","decision":"flag","reasons":["Judge: says something the week's data contradicts. Check it."]}
-{"trace_id":"c_040","decision":"flag","reasons":["Judge: guilt, bot voice or nothing specific (Rule 3)."]}
+{"trace_id":"c_040","decision":"flag","reasons":["Describes a missed workout as done. Check it.","Judge: guilt, bot voice or nothing specific (Rule 3)."]}

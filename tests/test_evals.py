@@ -234,3 +234,8 @@ def test_calendar_claims_catch_wrong_days_and_counts():
     )
     assert "calendar" in checks(CLEAN.replace("Same plan", "Three runs this week. Same plan"))
     assert "calendar" not in checks(CLEAN.replace("Same plan", "Next Monday we run again. Same plan"))
+
+
+def test_planned_counts_and_the_word_step_are_not_claims():
+    assert "calendar" not in checks(CLEAN.replace("Same plan", "You got two of two sessions in. Same plan"))
+    assert "activity_value" not in checks(CLEAN.replace("Same plan", "That 40-minute run is a big step. Same plan"))

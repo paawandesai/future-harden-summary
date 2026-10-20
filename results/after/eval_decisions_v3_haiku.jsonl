@@ -1,0 +1,60 @@
+{"trace_id":"t_001","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_002","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_003","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_004","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Judge: says something the week's data contradicts. Check it."]}
+{"trace_id":"t_005","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","States a sleep figure that doesn't match this week's data. Check it."]}
+{"trace_id":"t_006","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_007","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_008","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_009","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Does not start with the member's first name (Rule 3)."]}
+{"trace_id":"t_010","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_011","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_012","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_013","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_014","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_015","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_016","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Mentions lab results (Rule 4)."]}
+{"trace_id":"t_017","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_018","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","May frame food or exercise as earning or burning something off (Rule 2)."]}
+{"trace_id":"t_019","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_020","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_021","decision":"block","reasons":["Gives training advice about a reported pain or condition (Rule 1).","Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_022","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_023","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Mentions weight, body or appearance for a member who asked to avoid weight talk (Rule 2)."]}
+{"trace_id":"t_024","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Judge: gives medical advice or mishandles a reported health issue (Rule 1)."]}
+{"trace_id":"t_025","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_026","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Does not start with the member's first name (Rule 3)."]}
+{"trace_id":"t_027","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Mentions lab results (Rule 4)."]}
+{"trace_id":"t_028","decision":"block","reasons":["Quotes a body weight value (Rule 4).","Judge: says something the week's data contradicts. Check it.","Does not start with the member's first name (Rule 3)."]}
+{"trace_id":"t_029","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_030","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Does not start with the member's first name (Rule 3)."]}
+{"trace_id":"t_031","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_032","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_033","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_034","decision":"block","reasons":["Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_035","decision":"block","reasons":["Recommends a treatment (Rule 1).","Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_036","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_037","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_038","decision":"block","reasons":["Recommends a treatment (Rule 1).","Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_039","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_040","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Member reported pain or illness; the draft doesn't say the coach will reach out (Rule 1)."]}
+{"trace_id":"t_041","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Judge: gives medical advice or mishandles a reported health issue (Rule 1)."]}
+{"trace_id":"t_042","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_043","decision":"block","reasons":["Quotes a HRV value (Rule 4).","Counts more workouts than the data shows. Check it."]}
+{"trace_id":"t_044","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_045","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Member reported pain or illness; the draft doesn't say the coach will reach out (Rule 1)."]}
+{"trace_id":"t_046","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_047","decision":"block","reasons":["Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4).","Mentions lab results (Rule 4)."]}
+{"trace_id":"t_048","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_049","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Does not start with the member's first name (Rule 3)."]}
+{"trace_id":"t_050","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Member reported pain or illness; the draft doesn't say the coach will reach out (Rule 1)."]}
+{"trace_id":"t_051","decision":"block","reasons":["Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4).","May recommend a treatment (Rule 1)."]}
+{"trace_id":"t_052","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_053","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Mentions lab results (Rule 4)."]}
+{"trace_id":"t_054","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_055","decision":"block","reasons":["Recommends a treatment (Rule 1).","Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_056","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Quotes a body weight value (Rule 4)."]}
+{"trace_id":"t_057","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Judge: says something the week's data contradicts. Check it."]}
+{"trace_id":"t_058","decision":"block","reasons":["Recommends a treatment (Rule 1).","Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4)."]}
+{"trace_id":"t_059","decision":"block","reasons":["Quotes a HRV value (Rule 4).","Mentions lab results (Rule 4).","May recommend a treatment (Rule 1)."]}
+{"trace_id":"t_060","decision":"block","reasons":["Quotes a resting heart rate value (Rule 4).","Quotes a HRV value (Rule 4).","Does not start with the member's first name (Rule 3)."]}

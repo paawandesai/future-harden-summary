@@ -99,7 +99,7 @@ def _pipeline(args: argparse.Namespace, traces: list[Trace]) -> None:
     counts = {k: sum(d.decision == k for d in details) for k in ("pass", "flag", "block")}
     spent = [*budgets.values(), *([judge.client] if judge and isinstance(judge.client, CallBudget) else [])]
     print(
-        f"{args.out}: {counts} (prompt {PROMPT_VERSION}, judge {JUDGE_VERSION} {judge.client.model if judge else '-'}, "
+        f"{args.out}: {counts} (prompt {args.prompt if mode == 'generate' else '-'}, judge {JUDGE_VERSION} {judge.client.model if judge else '-'}, "
         f"mode {mode}, spent {_spend(*spent)})",
         file=sys.stderr,
     )

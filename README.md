@@ -37,7 +37,7 @@ uv run weekly-summary crosscheck results/a.jsonl results/b.jsonl --names Sonnet 
 
 Add `--details results/details.jsonl` to keep every finding and draft for `evaluate`. The key is
 read from `ANTHROPIC_FUTURE_API_KEY`, then `ANTHROPIC_API_KEY`. Models come from `LLM_MODEL`
-(generator) and `JUDGE_MODEL`; both default to Haiku. `--max-calls` caps model calls per client, and the run
+(generator) and `JUDGE_MODEL`; both default to Haiku. `--max-calls` caps model calls per client. `--prompt v3` regenerates with the old prompt, for comparison only. See `WRITEUP.md` for the design and results. and the run
 prints what it spent. `--judge-repeat N` judges again under a fresh cache key, for run-to-run variance.
 Judge agreement with the labels, and the Sonnet cross-check, are in `results/JUDGE_AGREEMENT.md`.
 

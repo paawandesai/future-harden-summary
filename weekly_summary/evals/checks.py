@@ -373,6 +373,9 @@ def calendar_claims(draft: str, facts: WeekFacts) -> list[Finding]:
             if day not in days_done and not _NOT_DONE.search(sentence):
                 return [_calendar("Describes a missed workout as done. Check it.", sentence)]
         for match in _COUNTED.finditer(sentence):
+            # "three of four sessions" and "4 of 5 planned" count what was planned, not what was done.
+            if re.search(r"\bof\s*$", sentence[: match.start()]) or re.match(r"\s+planned", sentence[match.end() :]):
+                continue
             claimed, kind = _ONE.get(match.group(1)) or int(match.group(1)), match.group(2)
             pattern = _KINDS[kind]
             done = sum(1 for _, name, ok in facts.sessions if ok and (not pattern or re.search(pattern, name)))
@@ -405,7 +408,7 @@ def _nearest_figure(sentence: str, word: re.Pattern[str]) -> float | None:
 
 
 _SLEEP = re.compile(r"\bsleep\b|\bslept\b", re.I)
-_STEPS = re.compile(r"\bsteps?\b", re.I)
+_STEPS = re.compile(r"\bsteps\b", re.I)
 
 
 def activity_values(draft: str, facts: WeekFacts) -> list[Finding]:
