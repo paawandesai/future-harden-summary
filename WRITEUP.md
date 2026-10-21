@@ -27,16 +27,17 @@ reports (`evals/facts.py`).
 unparseable output becomes a flag. When the only finding is a judge-only "other", Sonnet must agree (section 4).
 Judge responses are cached, so `--no-generate` replays without a key.
 
-**Labels and judge accuracy.** Every label set was written by an agent and then reviewed by me against
-`labels/RUBRIC.md` (record in `labels/REVIEW_LOG.md`). Claude pre-filled the 60 production labels (40 dev, 20
-held-out by hash). The code checks were written while reading those 60, so they are in-sample there. For honest
+**Labels and judge accuracy.** Every label set was written by an agent and then checked by me against
+`labels/RUBRIC.md`, to different depths (record in `labels/REVIEW_LOG.md`): a quick read of the 100 production and
+challenge labels, 3 of the 30 v4-draft labels, and a review of the rehearsal and v5 sets. Claude pre-filled the 60
+production labels (40 dev, 20 held-out by hash). The code checks were written while reading those 60, so they are in-sample there. For honest
 numbers, agents that never saw the checks wrote two blind sets: **40 challenge drafts** and **30 rehearsal
 traces** with new names, sports and edge cases. The checks are frozen against the challenge set: a miss there is
 reported, never patched one case at a time.
 
 | Blind set | Code only: violations passed | Code + judge: violations passed | Code + judge: clean drafts flagged |
 |---|---|---|---|
-| Challenge, 30 violating / 10 clean | 10 (now 8) | **0** | 1 |
+| Challenge, 30 violating / 10 clean | 13 (now 8) | **0** | 1 |
 | Rehearsal, 19 violating / 11 clean | 3 (now 2) | **0** | 5 (now 4) |
 
 The first number is the blind result. "Now" is after generic fixes, which made those sets partly in-sample. Two
@@ -167,15 +168,17 @@ passes, labeled blind and reviewed by me). 3 drafts break a rule, all subtly:
 I used **Claude Code** (Opus 5.5) as the coding agent for nearly all of the implementation: vocabulary, checks,
 judge, pipeline, tests, CI and these numbers. The feature and judges run on **Claude Haiku 5.5**; **Claude Sonnet
 5.5** is the confirmation and cross-check judge. Separate Claude agents that never saw the checks wrote the
-challenge and rehearsal sets and their labels, and I reviewed every label set. Nobody verified independently:
-`vocab.toml` (reviewed only through its effect on the labeled sets), the synthetic blind drafts, and the spend
-figures (from the code's own price table).
+challenge and rehearsal sets and their labels, and I checked them to the depths above. Nobody verified
+independently: `vocab.toml` (reviewed only through its effect on the labeled sets), 27 of the 30 v4-draft labels,
+the synthetic blind drafts, and the spend figures (from the code's own price table).
 
 **Where I didn't trust the output:** the code checks scored almost perfectly on the 60 drafts, and that was the
 warning sign, because they had been written while reading those drafts. I had an agent that never saw the checks
-write a blind set. Code alone let 10 of its 30 violations through. That is why the judge exists and why the checks
-are frozen against that set. Where the pipeline disagreed with an agent label (7 production rows, 2 rehearsal
-rows), the label was checked against the workout dates before my review.
+write a blind set. Code alone let 13 of its 30 violations through. That is why the judge exists and why the checks
+are frozen against that set. Where the pipeline disagreed with an agent label (6 challenge rows and 1 production
+row, all flagged by both judges, and 2 rehearsal rows), the label was checked against the workout dates and I
+approved the change. The 6 challenge changes came after I had accepted that set, and they raise the judge's
+"other" agreement there, so that figure is partly in-sample.
 
 **Scope:** this went well past the 3-hour box, at about 6 hours of agent-assisted work in the commit history, by
 choice, to build the fullest version. I also edited `ASSESSMENT.md` once, changing "GitHub repo" to "GitLab repo"
